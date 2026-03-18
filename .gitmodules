@@ -1,3 +1,0 @@
-[submodule "discrete_diffusion/mdlm"]
-	path = discrete_diffusion/mdlm
-	url = https://github.com/zacharyhorvitz/mdlm.git
