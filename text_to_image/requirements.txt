@@ -14,7 +14,8 @@ transformers
 hpsv2==1.2.0
 ftfy==6.3.1
 regex==2024.11.6
-clip @ git+https://github.com/openai/CLIP.git
+# NOTE: `ImageReward` already pins/provides `clip==1.0` from OpenAI's CLIP repo.
+# Keeping a second explicit `clip` source causes pip resolver conflicts.
 -e git+https://github.com/THUDM/ImageReward.git@2ca71bac4ed86b922fe53ddaec3109fe94d45fd3#egg=image_reward
 
 # LLMGrader support (optional unless using guidance_reward_fn=LLMGrader)
