@@ -8,6 +8,7 @@ tqdm==4.66.4
 matplotlib==3.9.4
 safetensors==0.5.2
 transformers
+peft
 -e git+https://github.com/huggingface/diffusers@af28ae2d5ba0ef80d99fff7859ebea730e1cf3f8#egg=diffusers
 
 # Reward functions used in text_to_image/fkd_diffusers/rewards.py
