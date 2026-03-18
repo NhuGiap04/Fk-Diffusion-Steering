@@ -74,4 +74,6 @@ zipp==3.21.0
 google-genai
 typing_extensions
 setuptools
-transformers
+transformers==4.37.2
+peft==0.10.0
+wandb
