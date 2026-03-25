@@ -305,6 +305,7 @@ class OriginalStableDiffusionXL(
         iterative_reward_fn: str = "ImageReward",
         iterative_reward_temperature: float = 1.0,
         iterative_source_noise_scale: float = 1.0,
+        iterative_alpha_coefficient: float = 1.0,
         iterative_metric_to_chase: str = "overall_score",
         prompt_2: Optional[Union[str, List[str]]] = None,
         height: Optional[int] = None,
@@ -691,6 +692,8 @@ class OriginalStableDiffusionXL(
                 raise ValueError(
                     f"`iterative_source_timestep_idx` must be in [0, {len(timesteps) - 1}]."
                 )
+            if not (0.0 <= iterative_alpha_coefficient <= 1.0):
+                raise ValueError("`iterative_alpha_coefficient` must be in [0.0, 1.0].")
 
             n_particles = iterative_num_particles or latents.shape[0]
             if n_particles != latents.shape[0]:
@@ -823,8 +826,13 @@ class OriginalStableDiffusionXL(
                     )
                     rewards = torch.as_tensor(rewards, device=latents.device, dtype=latents.dtype)
                     weights = torch.softmax(iterative_reward_temperature * rewards, dim=0)
-                    source_latent = torch.sum(
+                    weighted_source = torch.sum(
                         captured_latents * weights.view(-1, 1, 1, 1), dim=0, keepdim=True
+                    )
+                    eps = torch.randn_like(weighted_source)
+                    source_latent = (
+                        iterative_alpha_coefficient * weighted_source
+                        + (1.0 - iterative_alpha_coefficient) * eps
                     )
         else:
             with self.progress_bar(total=num_inference_steps) as progress_bar:
