@@ -32,7 +32,6 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
         iterative_reward_fn: str = "ImageReward",
         iterative_reward_temperature: float = 1.0,
         iterative_source_noise_scale: float = 1.0,
-        iterative_alpha_coefficient: float = 1.0,
         iterative_metric_to_chase: str = "overall_score",
         **kwargs,
     ):
@@ -43,7 +42,6 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
             "iterative_reward_fn": iterative_reward_fn,
             "iterative_reward_temperature": iterative_reward_temperature,
             "iterative_source_noise_scale": iterative_source_noise_scale,
-            "iterative_alpha_coefficient": iterative_alpha_coefficient,
             "iterative_metric_to_chase": iterative_metric_to_chase,
         }
         try:
@@ -90,7 +88,7 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
             raise ValueError("`iterative_source_noise_scale` must be in [0.0, 1.0].")
 
         # Align source latent mixing with scheduler noise level (sigma) instead of raw timestep index.
-        # source = alpha * mean + (1 - alpha) * eps -> target noise scale is proportional to (1 - alpha).
+        # source = source_scale * mean + (1 - source_scale) * eps -> target noise scale is proportional to (1 - source_scale).
         step_sigmas = get_scheduler_sigmas_for_timesteps(self.scheduler, timesteps, latents.device)
         target_sigma = (1.0 - iterative_source_noise_scale) * float(step_sigmas[0])
         iterative_source_timestep_idx = int(torch.argmin(torch.abs(step_sigmas - target_sigma)).item())
