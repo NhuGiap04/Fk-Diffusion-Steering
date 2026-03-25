@@ -82,20 +82,19 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
         iterative_reward_fn = cfg.get("iterative_reward_fn", "ImageReward")
         iterative_reward_temperature = cfg.get("iterative_reward_temperature", 1.0)
         iterative_source_noise_scale = cfg.get("iterative_source_noise_scale", 1.0)
-        iterative_alpha_coefficient = cfg.get("iterative_alpha_coefficient", 1.0)
         iterative_metric_to_chase = cfg.get("iterative_metric_to_chase", "overall_score")
 
         if t_loops < 1:
             raise ValueError("`t_loops` must be >= 1 when `steer_scheme == 'incremental'`.")
-        if not (0.0 <= iterative_alpha_coefficient <= 1.0):
-            raise ValueError("`iterative_alpha_coefficient` must be in [0.0, 1.0].")
+        if not (0.0 <= iterative_source_noise_scale <= 1.0):
+            raise ValueError("`iterative_source_noise_scale` must be in [0.0, 1.0].")
 
         # Align source latent mixing with scheduler noise level (sigma) instead of raw timestep index.
         # source = alpha * mean + (1 - alpha) * eps -> target noise scale is proportional to (1 - alpha).
         step_sigmas = get_scheduler_sigmas_for_timesteps(self.scheduler, timesteps, latents.device)
-        target_sigma = (1.0 - iterative_alpha_coefficient) * float(step_sigmas[0])
-        alpha_source_timestep_idx = int(torch.argmin(torch.abs(step_sigmas - target_sigma)).item())
-        iterative_source_timestep_idx = alpha_source_timestep_idx
+        target_sigma = (1.0 - iterative_source_noise_scale) * float(step_sigmas[0])
+        iterative_source_timestep_idx = int(torch.argmin(torch.abs(step_sigmas - target_sigma)).item())
+
 
         steps_per_full_loop = len(timesteps)
         steps_per_restart_loop = len(timesteps) - iterative_source_timestep_idx
@@ -123,10 +122,6 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
         source_latent = None
         with self.progress_bar(total=progress_total) as progress_bar:
             for _ in range(t_loops):
-                if source_latent is not None:
-                    base_latents = source_latent.expand(n_particles, -1, -1, -1)
-                    latents = base_latents + iterative_source_noise_scale * torch.randn_like(base_latents)
-
                 captured_latents = None
                 loop_start_idx = 0 if source_latent is None else iterative_source_timestep_idx
                 loop_timesteps = timesteps[loop_start_idx:]
@@ -237,7 +232,7 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
                 )
                 eps = torch.randn_like(weighted_source)
                 source_latent = (
-                    iterative_alpha_coefficient * weighted_source + (1.0 - iterative_alpha_coefficient) * eps
+                    iterative_source_noise_scale * weighted_source + (1.0 - iterative_source_noise_scale) * eps
                 )
 
         return latents
