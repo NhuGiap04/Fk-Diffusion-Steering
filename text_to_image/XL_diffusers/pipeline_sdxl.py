@@ -688,12 +688,20 @@ class OriginalStableDiffusionXL(
         if use_incremental:
             if t_loops < 1:
                 raise ValueError("`t_loops` must be >= 1 when `use_incremental=True`.")
-            if iterative_source_timestep_idx < 0 or iterative_source_timestep_idx >= len(timesteps):
-                raise ValueError(
-                    f"`iterative_source_timestep_idx` must be in [0, {len(timesteps) - 1}]."
-                )
             if not (0.0 <= iterative_alpha_coefficient <= 1.0):
                 raise ValueError("`iterative_alpha_coefficient` must be in [0.0, 1.0].")
+
+            # Align source latent mixing with scheduler timestep.
+            timesteps_float = torch.as_tensor(timesteps, device=device, dtype=torch.float32)
+            target_timestep = (1.0 - iterative_alpha_coefficient) * float(timesteps_float[0])
+            alpha_source_timestep_idx = int(
+                torch.argmin(torch.abs(timesteps_float - target_timestep)).item()
+            )
+            iterative_source_timestep_idx = alpha_source_timestep_idx
+
+            steps_per_full_loop = len(timesteps)
+            steps_per_restart_loop = len(timesteps) - iterative_source_timestep_idx
+            progress_total = steps_per_full_loop + (t_loops - 1) * steps_per_restart_loop
 
             n_particles = iterative_num_particles or latents.shape[0]
             if n_particles != latents.shape[0]:
@@ -715,14 +723,16 @@ class OriginalStableDiffusionXL(
                 reward_prompts = [""] * n_particles
 
             source_latent = None
-            with self.progress_bar(total=num_inference_steps * t_loops) as progress_bar:
+            with self.progress_bar(total=progress_total) as progress_bar:
                 for _ in range(t_loops):
                     if source_latent is not None:
                         base_latents = source_latent.expand(n_particles, -1, -1, -1)
                         latents = base_latents + iterative_source_noise_scale * torch.randn_like(base_latents)
 
                     captured_latents = None
-                    for i, t in enumerate(timesteps):
+                    loop_start_idx = 0 if source_latent is None else iterative_source_timestep_idx
+                    loop_timesteps = timesteps[loop_start_idx:]
+                    for i, t in enumerate(loop_timesteps, start=loop_start_idx):
                         if self.interrupt:
                             continue
 
