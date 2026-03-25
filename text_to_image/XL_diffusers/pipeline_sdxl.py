@@ -166,6 +166,34 @@ def retrieve_timesteps(
     return timesteps, num_inference_steps
 
 
+def get_scheduler_sigmas_for_timesteps(scheduler, timesteps, device):
+    """
+    Returns per-step sigma values aligned with `timesteps` for the active scheduler.
+    """
+    timesteps_t = torch.as_tensor(timesteps, device=device, dtype=torch.float32)
+
+    # Most Karras/Euler-like schedulers expose `sigmas` directly after set_timesteps.
+    if hasattr(scheduler, "sigmas") and scheduler.sigmas is not None:
+        scheduler_sigmas = torch.as_tensor(
+            scheduler.sigmas, device=device, dtype=torch.float32
+        )
+        if scheduler_sigmas.shape[0] >= timesteps_t.shape[0]:
+            return scheduler_sigmas[: timesteps_t.shape[0]]
+
+    # DDIM/DDPM-like schedulers can derive sigma from alphas_cumprod.
+    if hasattr(scheduler, "alphas_cumprod") and scheduler.alphas_cumprod is not None:
+        alphas_cumprod = torch.as_tensor(
+            scheduler.alphas_cumprod, device=device, dtype=torch.float32
+        )
+        t_idx = timesteps_t.long().clamp(0, alphas_cumprod.shape[0] - 1)
+        alpha_bar_t = alphas_cumprod[t_idx]
+        return torch.sqrt((1.0 - alpha_bar_t) / torch.clamp(alpha_bar_t, min=1e-12))
+
+    # Fallback: normalize timestep magnitude when scheduler internals are unavailable.
+    denom = torch.clamp(torch.max(torch.abs(timesteps_t)), min=1.0)
+    return torch.abs(timesteps_t) / denom
+
+
 class OriginalStableDiffusionXL(
     StableDiffusionXLPipeline,
     DiffusionPipeline,
@@ -691,11 +719,12 @@ class OriginalStableDiffusionXL(
             if not (0.0 <= iterative_alpha_coefficient <= 1.0):
                 raise ValueError("`iterative_alpha_coefficient` must be in [0.0, 1.0].")
 
-            # Align source latent mixing with scheduler timestep.
-            timesteps_float = torch.as_tensor(timesteps, device=device, dtype=torch.float32)
-            target_timestep = (1.0 - iterative_alpha_coefficient) * float(timesteps_float[0])
+            # Align source latent mixing with scheduler noise level (sigma) instead of raw timestep index.
+            # source = alpha * mean + (1 - alpha) * eps -> target noise scale is proportional to (1 - alpha).
+            step_sigmas = get_scheduler_sigmas_for_timesteps(self.scheduler, timesteps, device)
+            target_sigma = (1.0 - iterative_alpha_coefficient) * float(step_sigmas[0])
             alpha_source_timestep_idx = int(
-                torch.argmin(torch.abs(timesteps_float - target_timestep)).item()
+                torch.argmin(torch.abs(step_sigmas - target_sigma)).item()
             )
             iterative_source_timestep_idx = alpha_source_timestep_idx
 
