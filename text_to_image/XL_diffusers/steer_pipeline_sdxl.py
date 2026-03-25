@@ -90,8 +90,10 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
         # Align source latent mixing with scheduler noise level (sigma) instead of raw timestep index.
         # source = source_scale * mean + (1 - source_scale) * eps -> target noise scale is proportional to (1 - source_scale).
         step_sigmas = get_scheduler_sigmas_for_timesteps(self.scheduler, timesteps, latents.device)
-        target_sigma = iterative_source_noise_scale * float(step_sigmas[0])
+        target_sigma = (1.0 - iterative_source_noise_scale) * float(step_sigmas[0])
         iterative_source_timestep_idx = int(torch.argmin(torch.abs(step_sigmas - target_sigma)).item())
+
+        print("Iterative source timestep index:", iterative_source_timestep_idx)
 
 
         steps_per_full_loop = len(timesteps)
