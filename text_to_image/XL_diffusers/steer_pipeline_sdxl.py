@@ -129,6 +129,10 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
                     if self.interrupt:
                         continue
 
+                    if source_latent is not None:
+                        base_latents = source_latent.expand(n_particles, -1, -1, -1)
+                        latents = base_latents + (1.0 - iterative_source_noise_scale) * torch.randn_like(base_latents)
+
                     latent_model_input = (
                         torch.cat([latents] * 2) if self.do_classifier_free_guidance else latents
                     )
@@ -230,9 +234,8 @@ class IncrementStableDiffusionXL(OriginalStableDiffusionXL):
                 weighted_source = torch.sum(
                     captured_latents * weights.view(-1, 1, 1, 1), dim=0, keepdim=True
                 )
-                eps = torch.randn_like(weighted_source)
                 source_latent = (
-                    iterative_source_noise_scale * weighted_source + (1.0 - iterative_source_noise_scale) * eps
+                    iterative_source_noise_scale * weighted_source
                 )
 
         return latents
