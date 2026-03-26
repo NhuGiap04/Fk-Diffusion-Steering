@@ -560,11 +560,12 @@ class TemperedDiverseRejuvenatedStableDiffusionXL(OriginalStableDiffusionXL):
         def _crowding_scores(latent_batch: torch.Tensor, bandwidth: float) -> torch.Tensor:
             if latent_batch.shape[0] <= 1:
                 return torch.zeros(latent_batch.shape[0], device=latent_batch.device, dtype=latent_batch.dtype)
-            z = latent_batch.flatten(start_dim=1)
+            # cdist on CUDA does not support float16; use float32 distances for stability.
+            z = latent_batch.flatten(start_dim=1).float()
             z = z / (torch.norm(z, dim=1, keepdim=True) + 1e-6)
             d2 = torch.cdist(z, z, p=2.0).pow(2)
             logits = -d2 / max(bandwidth * bandwidth, 1e-5)
-            return torch.logsumexp(logits, dim=1)
+            return torch.logsumexp(logits, dim=1).to(dtype=latent_batch.dtype)
 
         def _linear_schedule(step_idx: int, total_steps: int, start: float, end: float) -> float:
             if total_steps <= 1:
@@ -677,7 +678,8 @@ class TemperedDiverseRejuvenatedStableDiffusionXL(OriginalStableDiffusionXL):
             if subset_size == n:
                 return torch.arange(n, device=latent_batch.device)
 
-            z = latent_batch.flatten(start_dim=1)
+            # cdist on CUDA does not support float16; use float32 distances for stability.
+            z = latent_batch.flatten(start_dim=1).float()
             z = z / (torch.norm(z, dim=1, keepdim=True) + 1e-6)
             d2 = torch.cdist(z, z, p=2.0).pow(2)
             kernel = torch.exp(-d2 / 0.5)
