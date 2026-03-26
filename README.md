@@ -1,5 +1,5 @@
 <div align="center">
-    <h1>:dart: Feynman-Kac Diffusion Steering 🚀 📈 🌈</h1>
+    <h1>Feynman-Kac Diffusion Steering 🚀 📈 🌈</h1>
     <h3><i>A general framework for inference-time scaling and steering of diffusion models with arbitrary rewards.</i></h3>
 
 [![arXiv](https://img.shields.io/badge/arXiv-2501.06848-red.svg)](https://arxiv.org/abs/2501.06848)
