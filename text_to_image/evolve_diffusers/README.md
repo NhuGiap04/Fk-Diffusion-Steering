@@ -29,43 +29,56 @@ From `evolve_diffusers.__init__`:
 - `stein_step`: applies one Stein update.
 - `steer_sample`: runs reverse diffusion and applies Stein updates in a timestep window.
 
-### Expected DDPM interface
+### `steer_sample` behavior
 
-`steer_sample` expects a `ddpm` object with:
+- Input conditioning is prompt-based (`prompt` / `prompt_2`), same as `BaseSDXL.__call__`.
+- Default classifier-free guidance is `guidance_scale=5.0`.
+- Steering is injected via `callback_on_step_end` inside the base SDXL denoising loop.
+- Return value is `(pipeline_output, latent_trajectory)`.
+- `accepted_x0` must match latent tensor shape `[M, C, H_latent, W_latent]` for your chosen resolution.
+- If `accepted_x0` is provided and `steer_start_timestep` is omitted, steering runs from the start of the scheduler horizon.
 
-- `num_steps: int`
-- `alpha_bars: torch.Tensor` (length `num_steps`)
-- `p_sample(x_t, t, labels, guidance_scale=...) -> x_{t-1}`
+### Expected SDXL interface
+
+`steer_sample` expects a `BaseSDXL` model instance and follows the same denoising path as `BaseSDXL.__call__`.
+Steering is injected through `callback_on_step_end` so updates are applied inside the base pipeline loop.
 
 ### Minimal usage
 
 ```python
 import torch
+from diffusers import DDIMScheduler
+from evolve_diffusers import BaseSDXL
 from evolve_diffusers.steer_pipeline import steer_sample
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# labels shape: [num_samples]
-labels = torch.full((32,), 2, dtype=torch.long, device=device)
+pipe = BaseSDXL.from_pretrained(
+    "stabilityai/stable-diffusion-xl-base-1.0",
+    torch_dtype=torch.float16 if device == "cuda" else torch.float32,
+)
+pipe.scheduler = DDIMScheduler.from_config(pipe.scheduler.config)
+pipe = pipe.to(device)
 
-# accepted clean samples from a previous loop: [M, D]
-accepted_x0 = torch.randn(128, 2, device=device)
+# accepted clean latent particles from a previous loop: [M, 4, H/8, W/8]
+accepted_x0 = torch.randn(4, 4, 128, 128, device=device)
 
-trajectory = steer_sample(
-    ddpm=ddpm,
-    labels=labels,
+result, latent_trajectory = steer_sample(
+    model=pipe,
+    prompt=["a photo of a blue clock and a white cup"] * 4,
     accepted_x0=accepted_x0,
     steer_start_timestep=160,
     steer_end_timestep=20,
     stein_step_size=0.04,
     stein_bandwidth=None,
-    guidance_scale=0.0,
-    latent_dim=2,
-    device=device,
+    # guidance_scale defaults to 5.0, matching BaseSDXL default CFG.
+    num_inference_steps=50,
+    output_type="pil",
 )
 
-# trajectory is [x_T, x_{T-1}, ..., x_0], each tensor on CPU.
-print(len(trajectory), trajectory[-1].shape)
+# `result.images` contains final generated images.
+# `latent_trajectory` stores one latent tensor per denoising step on CPU.
+print(len(result.images), len(latent_trajectory), latent_trajectory[-1].shape)
 ```
 
 ## Quick start (original pipeline)
