@@ -103,8 +103,9 @@ def stein_step(
         )
 
     x_shape = x_t.shape
-    x_flat = x_t.reshape(x_t.shape[0], -1)
-    accepted_flat = accepted_x0.reshape(accepted_x0.shape[0], -1)
+    out_dtype = x_t.dtype
+    x_flat = x_t.reshape(x_t.shape[0], -1).to(dtype=torch.float32)
+    accepted_flat = accepted_x0.reshape(accepted_x0.shape[0], -1).to(dtype=torch.float32)
 
     score = score_log_prob_reward(
         x_t=x_flat,
@@ -116,9 +117,8 @@ def stein_step(
     assert not torch.isnan(phi).any(), "NaN detected in SVGD vector field"
     assert not torch.isinf(phi).any(), "Infinite values detected in SVGD vector field"
 
-
     x_next = x_flat + step_size * phi
-    return x_next.reshape(x_shape), phi.reshape(x_shape)
+    return x_next.to(dtype=out_dtype).reshape(x_shape), phi.to(dtype=out_dtype).reshape(x_shape)
 
 
 @torch.no_grad()
