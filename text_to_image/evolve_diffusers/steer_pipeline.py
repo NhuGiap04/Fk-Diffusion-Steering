@@ -4,6 +4,7 @@ import torch
 from diffusers.image_processor import PipelineImageInput
 
 from .pipeline_sdxl import BaseSDXL, get_scheduler_sigmas_for_timesteps
+from .rewards import get_reward_function
 
 
 def score_log_prob_reward(
@@ -15,7 +16,13 @@ def score_log_prob_reward(
     """
     Approximate ``grad_{x_t} log p(x_t | good)`` from accepted clean samples.
 
-    This version is scheduler-sigma based for latent diffusion pipelines.
+    Matches steer.py DDPM-form score approximation:
+        q(x_t | x_0) = N(sqrt(alpha_bar_t) * x_0, (1 - alpha_bar_t) I)
+
+    Here we receive ``sigma_t`` from the SDXL scheduler and recover
+    ``alpha_bar_t`` using:
+        sigma_t^2 = (1 - alpha_bar_t) / alpha_bar_t
+        alpha_bar_t = 1 / (1 + sigma_t^2)
     """
     if x_t.ndim != 2 or accepted_x0.ndim != 2:
         raise ValueError("x_t and accepted_x0 must have shape [B, D]")
@@ -29,9 +36,11 @@ def score_log_prob_reward(
     accepted_x0 = accepted_x0.to(device=device, dtype=dtype)
 
     sigma_t_tensor: torch.Tensor = torch.as_tensor(sigma_t, device=device, dtype=dtype)
-    var_t = torch.clamp(sigma_t_tensor * sigma_t_tensor, min=eps)
+    alpha_bar_t = 1.0 / torch.clamp(1.0 + sigma_t_tensor * sigma_t_tensor, min=eps)
+    sqrt_alpha_bar_t = torch.sqrt(torch.clamp(alpha_bar_t, min=eps))
+    var_t = torch.clamp(1.0 - alpha_bar_t, min=eps)
 
-    means = accepted_x0
+    means = sqrt_alpha_bar_t * accepted_x0
     delta = x_t[:, None, :] - means[None, :, :]
     sq_dist = (delta**2).sum(dim=-1)
 
@@ -244,5 +253,218 @@ def steer_sample(
     )
 
     return result, latent_trajectory
+
+
+def _resolve_prompt_and_particles(
+    prompt: Union[str, List[str]],
+    num_particles: int,
+) -> Tuple[Union[str, List[str]], int, List[str]]:
+    """Normalize prompt inputs for generation and reward evaluation."""
+    if num_particles <= 0:
+        raise ValueError("num_particles must be > 0")
+
+    if isinstance(prompt, str):
+        return prompt, num_particles, [prompt] * num_particles
+
+    if not isinstance(prompt, list) or len(prompt) == 0:
+        raise ValueError("prompt must be a non-empty string or list of strings")
+
+    if len(prompt) == num_particles:
+        return prompt, 1, prompt
+
+    if len(prompt) == 1:
+        p = prompt[0]
+        return p, num_particles, [p] * num_particles
+
+    raise ValueError(
+        "When prompt is a list, its length must be 1 or num_particles "
+        f"(got len(prompt)={len(prompt)}, num_particles={num_particles})"
+    )
+
+
+@torch.no_grad()
+def split_samples(
+    model: BaseSDXL,
+    prompt: Union[str, List[str]],
+    *,
+    num_particles: int,
+    threshold: float,
+    guidance_reward_fn: str = "ImageReward",
+    metric_to_chase: Optional[str] = None,
+    steer_start_timestep: Optional[int] = None,
+    steer_end_timestep: int = 0,
+    stein_step_size: float = 0.05,
+    stein_bandwidth: Optional[float] = None,
+    accepted_x0: Optional[torch.Tensor] = None,
+    num_inference_steps: int = 50,
+    guidance_scale: float = 5.0,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Sample particles with optional Stein steering, then split by reward threshold.
+
+    Returns a dictionary containing rewards, accepted/rejected particles, and outputs.
+    """
+    generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
+        prompt=prompt,
+        num_particles=num_particles,
+    )
+
+    result, latent_trajectory = steer_sample(
+        model=model,
+        prompt=generation_prompt,
+        accepted_x0=accepted_x0,
+        steer_start_timestep=steer_start_timestep,
+        steer_end_timestep=steer_end_timestep,
+        stein_step_size=stein_step_size,
+        stein_bandwidth=stein_bandwidth,
+        num_images_per_prompt=num_images_per_prompt,
+        num_inference_steps=num_inference_steps,
+        guidance_scale=guidance_scale,
+        output_type="pil",
+        return_dict=True,
+        **kwargs,
+    )
+
+    images = result.images
+    rewards = torch.as_tensor(
+        get_reward_function(
+            reward_name=guidance_reward_fn,
+            images=images,
+            prompts=reward_prompts,
+            metric_to_chase=metric_to_chase or "overall_score",
+        ),
+        dtype=torch.float32,
+    )
+
+    final_latents = latent_trajectory[-1]
+    accept_mask = rewards >= threshold
+    reject_mask = ~accept_mask
+
+    accepted_latents = final_latents[accept_mask]
+    rejected_latents = final_latents[reject_mask]
+
+    accepted_images = [img for i, img in enumerate(images) if bool(accept_mask[i].item())]
+    rejected_images = [img for i, img in enumerate(images) if bool(reject_mask[i].item())]
+
+    return {
+        "result": result,
+        "latent_trajectory": latent_trajectory,
+        "rewards": rewards,
+        "accepted_x0": accepted_latents,
+        "rejected_x0": rejected_latents,
+        "accepted_images": accepted_images,
+        "rejected_images": rejected_images,
+        "threshold": float(threshold),
+    }
+
+
+@torch.no_grad()
+def iterative_sample_with_stein(
+    model: BaseSDXL,
+    prompt: Union[str, List[str]],
+    *,
+    num_loops: int,
+    num_particles: int,
+    steer_start_timestep: int,
+    steer_end_timestep: int = 0,
+    base_threshold: float = 0.0,
+    stein_step_size: float = 0.05,
+    stein_bandwidth: Optional[float] = None,
+    num_inference_steps: int = 50,
+    guidance_scale: float = 5.0,
+    guidance_reward_fn: str = "ImageReward",
+    metric_to_chase: Optional[str] = None,
+    **kwargs: Any,
+) -> Dict[str, Any]:
+    """
+    Iteratively sample and update accepted pool, mirroring steer.py loop logic.
+
+    Loop behavior:
+    1) First loop samples without Stein steering.
+    2) Later loops steer using accepted particles from previous loops.
+    3) Threshold updates to improved mean reward, otherwise resets to base_threshold.
+    """
+    if num_loops <= 0:
+        raise ValueError("num_loops must be > 0")
+
+    all_results: List[Any] = []
+    all_trajectories: List[List[torch.Tensor]] = []
+    all_rewards: List[torch.Tensor] = []
+    all_thresholds: List[float] = []
+    all_accepted: List[torch.Tensor] = []
+    all_rejected: List[torch.Tensor] = []
+
+    best_mean_reward = -float("inf")
+    accepted_pool: Optional[torch.Tensor] = None
+
+    for loop_idx in range(num_loops):
+        use_stein = (
+            loop_idx > 0
+            and accepted_pool is not None
+            and accepted_pool.shape[0] > 0
+        )
+
+        split = split_samples(
+            model=model,
+            prompt=prompt,
+            num_particles=num_particles,
+            threshold=base_threshold,
+            guidance_reward_fn=guidance_reward_fn,
+            metric_to_chase=metric_to_chase,
+            steer_start_timestep=steer_start_timestep,
+            steer_end_timestep=steer_end_timestep,
+            stein_step_size=stein_step_size,
+            stein_bandwidth=stein_bandwidth,
+            accepted_x0=accepted_pool if use_stein else None,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            **kwargs,
+        )
+
+        rewards = split["rewards"]
+        mean_reward = float(rewards.mean().item())
+
+        if mean_reward > best_mean_reward:
+            best_mean_reward = mean_reward
+            threshold = mean_reward
+        else:
+            threshold = base_threshold
+
+        final_latents = split["latent_trajectory"][-1]
+        accept_mask = rewards >= threshold
+        reject_mask = ~accept_mask
+
+        accepted_latents = final_latents[accept_mask]
+        rejected_latents = final_latents[reject_mask]
+
+        if accepted_latents.shape[0] > 0:
+            accepted_pool = accepted_latents
+
+        all_results.append(split["result"])
+        all_trajectories.append(split["latent_trajectory"])
+        all_rewards.append(rewards)
+        all_thresholds.append(float(threshold))
+        all_accepted.append(accepted_latents)
+        all_rejected.append(rejected_latents)
+
+        print(
+            f"loop={loop_idx + 1}/{num_loops} "
+            f"use_stein={use_stein} "
+            f"mean_reward={mean_reward:.4f} "
+            f"threshold={threshold:.4f} "
+            f"accepted={accepted_latents.shape[0]} "
+            f"rejected={rejected_latents.shape[0]}"
+        )
+
+    return {
+        "results": all_results,
+        "trajectories": all_trajectories,
+        "rewards": all_rewards,
+        "thresholds": all_thresholds,
+        "accepted": all_accepted,
+        "rejected": all_rejected,
+        "best_mean_reward": best_mean_reward,
+    }
 
 

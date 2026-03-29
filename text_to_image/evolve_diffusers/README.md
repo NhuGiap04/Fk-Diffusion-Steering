@@ -28,6 +28,8 @@ From `evolve_diffusers.__init__`:
 - `stein_variational_vector_field`: computes empirical SVGD update field.
 - `stein_step`: applies one Stein update.
 - `steer_sample`: runs reverse diffusion and applies Stein updates in a timestep window.
+- `split_samples`: runs one sampling pass, evaluates rewards, and splits accepted/rejected particles.
+- `iterative_sample_with_stein`: repeats sampling loops and reuses accepted particles for steering.
 
 ### `steer_sample` behavior
 
@@ -79,6 +81,28 @@ result, latent_trajectory = steer_sample(
 # `result.images` contains final generated images.
 # `latent_trajectory` stores one latent tensor per denoising step on CPU.
 print(len(result.images), len(latent_trajectory), latent_trajectory[-1].shape)
+```
+
+### Iterative loop usage
+
+```python
+from evolve_diffusers.steer_pipeline import iterative_sample_with_stein
+
+loop_out = iterative_sample_with_stein(
+    model=pipe,
+    prompt="a photo of a blue clock and a white cup",
+    num_loops=4,
+    num_particles=4,
+    steer_start_timestep=160,
+    steer_end_timestep=20,
+    base_threshold=0.0,
+    stein_step_size=0.04,
+    guidance_scale=5.0,
+    guidance_reward_fn="ImageReward",
+    num_inference_steps=50,
+)
+
+print(loop_out["best_mean_reward"], len(loop_out["trajectories"]))
 ```
 
 ## Quick start (original pipeline)
