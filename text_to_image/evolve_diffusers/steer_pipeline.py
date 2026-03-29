@@ -113,6 +113,10 @@ def stein_step(
     )
     phi = stein_variational_vector_field(x=x_flat, score=score, bandwidth=bandwidth)
 
+    assert not torch.isnan(phi).any(), "NaN detected in SVGD vector field"
+    assert not torch.isinf(phi).any(), "Infinite values detected in SVGD vector field"
+
+
     x_next = x_flat + step_size * phi
     return x_next.reshape(x_shape), phi.reshape(x_shape)
 
