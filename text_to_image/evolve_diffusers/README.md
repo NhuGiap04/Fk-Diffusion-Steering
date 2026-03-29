@@ -1,10 +1,9 @@
-# evolve_diffusers
-
-Refactored SDXL pipelines used in this repo.
+# Evolve Diffusers
 
 This package provides baseline SDXL sampling and shared scoring utilities.
 
-- `BaseSDXL`: baseline SDXL sampling (no incremental steering logic).
+- `BaseSDXL`: baseline SDXL sampling (no steering logic).
+- `steer_pipeline.py`: Stein-style trajectory steering utilities for diffusion samplers.
 
 ## What changed in the refactor
 
@@ -20,6 +19,54 @@ From `evolve_diffusers.__init__`:
 - `BaseSDXL`
 - `latent_to_decode`
 - `get_reward_function`
+
+## Stein steering with `steer_pipeline.py`
+
+`steer_pipeline.py` contains a standalone steering path for particle trajectories:
+
+- `score_log_prob_reward`: approximates score from accepted clean samples.
+- `stein_variational_vector_field`: computes empirical SVGD update field.
+- `stein_step`: applies one Stein update.
+- `steer_sample`: runs reverse diffusion and applies Stein updates in a timestep window.
+
+### Expected DDPM interface
+
+`steer_sample` expects a `ddpm` object with:
+
+- `num_steps: int`
+- `alpha_bars: torch.Tensor` (length `num_steps`)
+- `p_sample(x_t, t, labels, guidance_scale=...) -> x_{t-1}`
+
+### Minimal usage
+
+```python
+import torch
+from evolve_diffusers.steer_pipeline import steer_sample
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+
+# labels shape: [num_samples]
+labels = torch.full((32,), 2, dtype=torch.long, device=device)
+
+# accepted clean samples from a previous loop: [M, D]
+accepted_x0 = torch.randn(128, 2, device=device)
+
+trajectory = steer_sample(
+    ddpm=ddpm,
+    labels=labels,
+    accepted_x0=accepted_x0,
+    steer_start_timestep=160,
+    steer_end_timestep=20,
+    stein_step_size=0.04,
+    stein_bandwidth=None,
+    guidance_scale=0.0,
+    latent_dim=2,
+    device=device,
+)
+
+# trajectory is [x_T, x_{T-1}, ..., x_0], each tensor on CPU.
+print(len(trajectory), trajectory[-1].shape)
+```
 
 ## Quick start (original pipeline)
 
