@@ -482,7 +482,7 @@ def iterative_sample_with_stein(
             best_mean_reward = mean_reward
 
         # Base threshold is the best mean reward observed so far.
-        running_base_threshold = best_mean_reward
+        running_base_threshold = best_mean_reward + std_reward / num_particles
         threshold = running_base_threshold
 
         final_latents = split["latent_trajectory"][-1]
