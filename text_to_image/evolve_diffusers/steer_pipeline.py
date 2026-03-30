@@ -473,7 +473,7 @@ def iterative_sample_with_stein(
             best_mean_reward = mean_reward
 
         # Base threshold is the best mean reward observed so far.
-        running_base_threshold = best_mean_reward
+        running_base_threshold = best_mean_reward + std_reward / 2.0
         threshold = running_base_threshold
 
         final_latents = split["latent_trajectory"][-1]
@@ -499,12 +499,19 @@ def iterative_sample_with_stein(
             else:
                 rejected_pool = torch.cat([rejected_pool, rejected_latents], dim=0)
 
-        # Keep pool and pool rewards aligned, and prune below-threshold entries.
+        # Keep pool and pool rewards aligned, and move pruned entries to rejected pool.
         if accepted_pool is not None:
             assert accepted_pool_rewards is not None
             keep_mask = accepted_pool_rewards >= threshold
+            pruned_to_rejected = accepted_pool[~keep_mask]
             pruned_accepted_pool = accepted_pool[keep_mask]
             pruned_accepted_rewards = accepted_pool_rewards[keep_mask]
+
+            if pruned_to_rejected.shape[0] > 0:
+                if rejected_pool is None:
+                    rejected_pool = pruned_to_rejected
+                else:
+                    rejected_pool = torch.cat([rejected_pool, pruned_to_rejected], dim=0)
 
             if pruned_accepted_pool.shape[0] == 0:
                 accepted_pool = None
