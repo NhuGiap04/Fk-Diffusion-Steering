@@ -477,6 +477,7 @@ def iterative_sample_with_stein(
         best_reward = float(rewards.max().item())
         mean_reward = float(rewards.mean().item())
         std_reward = float(rewards.std().item())
+        min_reward = float(rewards.min().item())
 
         if mean_reward > best_mean_reward:
             best_mean_reward = mean_reward
@@ -542,6 +543,7 @@ def iterative_sample_with_stein(
             f"best_reward={best_reward:.4f} "
             f"mean_reward={mean_reward:.4f} "
             f"std_reward={std_reward:.4f} "
+            f"min_reward={min_reward:.4f} "
             f"threshold={threshold:.4f} "
             f"accepted={accepted_latents.shape[0]} "
             f"rejected={rejected_latents.shape[0]} "
@@ -562,6 +564,7 @@ def iterative_sample_with_stein(
         "best_mean_reward": best_mean_reward,
         "best_reward": best_reward,
         "std_reward": std_reward,
+        "min_reward": min_reward,
     }
 
 
