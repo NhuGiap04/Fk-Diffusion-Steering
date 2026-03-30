@@ -9,12 +9,12 @@ from .rewards import get_reward_function
 
 def score_log_prob_reward(
     x_t: torch.Tensor,
-    accepted_x0: torch.Tensor,
+    support_x0: torch.Tensor,
     sigma_t: Union[float, torch.Tensor],
     eps: float = 1e-8,
 ) -> torch.Tensor:
     """
-    Approximate ``grad_{x_t} log p(x_t | good)`` from accepted clean samples.
+    Approximate ``grad_{x_t} log p(x_t | good)`` from supported clean samples.
 
     Matches steer.py DDPM-form score approximation:
         q(x_t | x_0) = N(sqrt(alpha_bar_t) * x_0, (1 - alpha_bar_t) I)
@@ -24,23 +24,23 @@ def score_log_prob_reward(
         sigma_t^2 = (1 - alpha_bar_t) / alpha_bar_t
         alpha_bar_t = 1 / (1 + sigma_t^2)
     """
-    if x_t.ndim != 2 or accepted_x0.ndim != 2:
-        raise ValueError("x_t and accepted_x0 must have shape [B, D]")
-    if x_t.shape[1] != accepted_x0.shape[1]:
-        raise ValueError("x_t and accepted_x0 must have matching feature dimension")
-    if accepted_x0.shape[0] == 0:
-        raise ValueError("accepted_x0 is empty; cannot approximate score")
+    if x_t.ndim != 2 or support_x0.ndim != 2:
+        raise ValueError("x_t and support_x0 must have shape [B, D]")
+    if x_t.shape[1] != support_x0.shape[1]:
+        raise ValueError("x_t and support_x0 must have matching feature dimension")
+    if support_x0.shape[0] == 0:
+        raise ValueError("support_x0 is empty; cannot approximate score")
 
     device = x_t.device
     dtype = x_t.dtype
-    accepted_x0 = accepted_x0.to(device=device, dtype=dtype)
+    support_x0 = support_x0.to(device=device, dtype=dtype)
 
     sigma_t_tensor: torch.Tensor = torch.as_tensor(sigma_t, device=device, dtype=dtype)
     alpha_bar_t = 1.0 / torch.clamp(1.0 + sigma_t_tensor * sigma_t_tensor, min=eps)
     sqrt_alpha_bar_t = torch.sqrt(torch.clamp(alpha_bar_t, min=eps))
     var_t = torch.clamp(1.0 - alpha_bar_t, min=eps)
 
-    means = sqrt_alpha_bar_t * accepted_x0
+    means = sqrt_alpha_bar_t * support_x0
     delta = x_t[:, None, :] - means[None, :, :]
     sq_dist = (delta**2).sum(dim=-1)
 
@@ -90,7 +90,9 @@ def stein_step(
     x_t: torch.Tensor,
     accepted_x0: torch.Tensor,
     sigma_t: Union[float, torch.Tensor],
+    rejected_x0: Optional[torch.Tensor] = None,
     step_size: float = 0.05,
+    rejected_penalty: float = 0.0,
     bandwidth: Optional[float] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """One SVGD update step on latent particles at the current scheduler sigma."""
@@ -101,21 +103,36 @@ def stein_step(
             "x_t and accepted_x0 must have matching non-batch dimensions "
             f"(got {x_t.shape[1:]} vs {accepted_x0.shape[1:]})"
         )
+    if rejected_x0 is not None and rejected_x0.ndim < 2:
+        raise ValueError("rejected_x0 must have at least 2 dims [B, ...]")
+    if rejected_x0 is not None and x_t.shape[1:] != rejected_x0.shape[1:]:
+        raise ValueError(
+            "x_t and rejected_x0 must have matching non-batch dimensions "
+            f"(got {x_t.shape[1:]} vs {rejected_x0.shape[1:]})"
+        )
 
     x_shape = x_t.shape
     out_dtype = x_t.dtype
     x_flat = x_t.reshape(x_t.shape[0], -1).to(dtype=torch.float32)
     accepted_flat = accepted_x0.reshape(accepted_x0.shape[0], -1).to(dtype=torch.float32)
 
-    score = score_log_prob_reward(
+    accepted_score = score_log_prob_reward(
         x_t=x_flat,
-        accepted_x0=accepted_flat,
+        support_x0=accepted_flat,
         sigma_t=sigma_t,
     )
-    phi = stein_variational_vector_field(x=x_flat, score=score, bandwidth=bandwidth)
+    accepted_phi = stein_variational_vector_field(x=x_flat, score=accepted_score, bandwidth=bandwidth)
 
-    assert not torch.isnan(phi).any(), "NaN detected in SVGD vector field"
-    assert not torch.isinf(phi).any(), "Infinite values detected in SVGD vector field"
+    phi = accepted_phi
+    if rejected_x0 is not None and rejected_x0.shape[0] > 0 and rejected_penalty > 0.0:
+        rejected_flat = rejected_x0.reshape(rejected_x0.shape[0], -1).to(dtype=torch.float32)
+        rejected_score = score_log_prob_reward(
+            x_t=x_flat,
+            support_x0=rejected_flat,
+            sigma_t=sigma_t,
+        )
+        rejected_phi = stein_variational_vector_field(x=x_flat, score=rejected_score, bandwidth=bandwidth)
+        phi = accepted_phi - rejected_penalty * rejected_phi
 
     x_next = x_flat + step_size * phi
     return x_next.to(dtype=out_dtype).reshape(x_shape), phi.to(dtype=out_dtype).reshape(x_shape)
@@ -127,6 +144,7 @@ def steer_sample(
     prompt: Union[str, List[str]],
     *,
     accepted_x0: Optional[torch.Tensor] = None,
+    rejected_x0: Optional[torch.Tensor] = None,
     prompt_2: Optional[Union[str, List[str]]] = None,
     height: Optional[int] = None,
     width: Optional[int] = None,
@@ -149,6 +167,7 @@ def steer_sample(
     steer_end_timestep: int = 0,
     stein_step_size: float = 0.05,
     stein_bandwidth: Optional[float] = None,
+    stein_rejected_penalty: float = 0.0,
     callback_on_step_end: Optional[Any] = None,
     callback_on_step_end_tensor_inputs: Optional[List[str]] = None,
     **kwargs: Any,
@@ -206,11 +225,19 @@ def steer_sample(
                     device=current_latents.device,
                     dtype=current_latents.dtype,
                 )
+                rejected_particles: Optional[torch.Tensor] = None
+                if rejected_x0 is not None and rejected_x0.shape[0] > 0:
+                    rejected_particles = rejected_x0.to(
+                        device=current_latents.device,
+                        dtype=current_latents.dtype,
+                    )
                 current_latents, _ = stein_step(
                     x_t=current_latents,
                     accepted_x0=accepted_particles,
+                    rejected_x0=rejected_particles,
                     sigma_t=sigma_t,
                     step_size=stein_step_size,
+                    rejected_penalty=stein_rejected_penalty,
                     bandwidth=stein_bandwidth,
                 )
 
@@ -299,7 +326,9 @@ def split_samples(
     steer_end_timestep: int = 0,
     stein_step_size: float = 0.05,
     stein_bandwidth: Optional[float] = None,
+    stein_rejected_penalty: float = 0.0,
     accepted_x0: Optional[torch.Tensor] = None,
+    rejected_x0: Optional[torch.Tensor] = None,
     num_inference_steps: int = 50,
     guidance_scale: float = 5.0,
     **kwargs: Any,
@@ -318,10 +347,12 @@ def split_samples(
         model=model,
         prompt=generation_prompt,
         accepted_x0=accepted_x0,
+        rejected_x0=rejected_x0,
         steer_start_timestep=steer_start_timestep,
         steer_end_timestep=steer_end_timestep,
         stein_step_size=stein_step_size,
         stein_bandwidth=stein_bandwidth,
+        stein_rejected_penalty=stein_rejected_penalty,
         num_images_per_prompt=num_images_per_prompt,
         num_inference_steps=num_inference_steps,
         guidance_scale=guidance_scale,
@@ -375,6 +406,7 @@ def iterative_sample_with_stein(
     base_threshold: float = 0.0,
     stein_step_size: float = 0.05,
     stein_bandwidth: Optional[float] = None,
+    stein_rejected_penalty: float = 0.0,
     num_inference_steps: int = 50,
     guidance_scale: float = 5.0,
     guidance_reward_fn: str = "ImageReward",
@@ -400,10 +432,11 @@ def iterative_sample_with_stein(
     all_accepted: List[torch.Tensor] = []
     all_rejected: List[torch.Tensor] = []
 
-    best_mean_reward = -float("inf")
+    best_mean_reward = float(base_threshold)
     running_base_threshold = float(base_threshold)
     accepted_pool: Optional[torch.Tensor] = None
     accepted_pool_rewards: Optional[torch.Tensor] = None
+    rejected_pool: Optional[torch.Tensor] = None
 
     for loop_idx in range(num_loops):
         use_stein = (
@@ -423,14 +456,18 @@ def iterative_sample_with_stein(
             steer_end_timestep=steer_end_timestep,
             stein_step_size=stein_step_size,
             stein_bandwidth=stein_bandwidth,
+            stein_rejected_penalty=stein_rejected_penalty,
             accepted_x0=accepted_pool if use_stein else None,
+            rejected_x0=rejected_pool if use_stein else None,
             num_inference_steps=num_inference_steps,
             guidance_scale=guidance_scale,
             **kwargs,
         )
 
         rewards = split["rewards"]
+        best_reward = float(rewards.max().item())
         mean_reward = float(rewards.mean().item())
+        std_reward = float(rewards.std().item())
 
         if mean_reward > best_mean_reward:
             best_mean_reward = mean_reward
@@ -456,16 +493,25 @@ def iterative_sample_with_stein(
                 assert accepted_pool_rewards is not None
                 accepted_pool_rewards = torch.cat([accepted_pool_rewards, accepted_rewards], dim=0)
 
+        if rejected_latents.shape[0] > 0:
+            if rejected_pool is None:
+                rejected_pool = rejected_latents
+            else:
+                rejected_pool = torch.cat([rejected_pool, rejected_latents], dim=0)
+
         # Keep pool and pool rewards aligned, and prune below-threshold entries.
         if accepted_pool is not None:
             assert accepted_pool_rewards is not None
             keep_mask = accepted_pool_rewards >= threshold
-            accepted_pool = accepted_pool[keep_mask]
-            accepted_pool_rewards = accepted_pool_rewards[keep_mask]
+            pruned_accepted_pool = accepted_pool[keep_mask]
+            pruned_accepted_rewards = accepted_pool_rewards[keep_mask]
 
-            if accepted_pool.shape[0] == 0:
+            if pruned_accepted_pool.shape[0] == 0:
                 accepted_pool = None
                 accepted_pool_rewards = None
+            else:
+                accepted_pool = pruned_accepted_pool
+                accepted_pool_rewards = pruned_accepted_rewards
 
         all_results.append(split["result"])
         all_trajectories.append(split["latent_trajectory"])
@@ -477,11 +523,14 @@ def iterative_sample_with_stein(
         print(
             f"loop={loop_idx + 1}/{num_loops} "
             f"use_stein={use_stein} "
+            f"best_reward={best_reward:.4f} "
             f"mean_reward={mean_reward:.4f} "
+            f"std_reward={std_reward:.4f} "
             f"threshold={threshold:.4f} "
             f"accepted={accepted_latents.shape[0]} "
             f"rejected={rejected_latents.shape[0]} "
-            f"pool={0 if accepted_pool is None else accepted_pool.shape[0]}"
+            f"accepted_pool={0 if accepted_pool is None else accepted_pool.shape[0]} "
+            f"rejected_pool={0 if rejected_pool is None else rejected_pool.shape[0]}"
         )
 
     return {
@@ -493,7 +542,10 @@ def iterative_sample_with_stein(
         "rejected": all_rejected,
         "accepted_pool": accepted_pool,
         "accepted_pool_rewards": accepted_pool_rewards,
+        "rejected_pool": rejected_pool,
         "best_mean_reward": best_mean_reward,
+        "best_reward": best_reward,
+        "std_reward": std_reward,
     }
 
 
