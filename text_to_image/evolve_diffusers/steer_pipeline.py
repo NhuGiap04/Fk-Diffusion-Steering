@@ -166,6 +166,7 @@ def steer_sample(
     steer_start_timestep: Optional[int] = None,
     steer_end_timestep: int = 0,
     stein_step_size: float = 0.05,
+    stein_num_steps: int = 1,
     stein_bandwidth: Optional[float] = None,
     stein_rejected_penalty: float = 0.0,
     callback_on_step_end: Optional[Any] = None,
@@ -182,6 +183,9 @@ def steer_sample(
         Tuple `(pipeline_output, latent_trajectory)`.
         `latent_trajectory` stores one latent tensor per denoising step (CPU).
     """
+    if stein_num_steps <= 0:
+        raise ValueError("stein_num_steps must be > 0")
+
     if callback_on_step_end_tensor_inputs is None:
         callback_on_step_end_tensor_inputs = ["latents"]
     elif "latents" not in callback_on_step_end_tensor_inputs:
@@ -231,15 +235,16 @@ def steer_sample(
                         device=current_latents.device,
                         dtype=current_latents.dtype,
                     )
-                current_latents, _ = stein_step(
-                    x_t=current_latents,
-                    accepted_x0=accepted_particles,
-                    rejected_x0=rejected_particles,
-                    sigma_t=sigma_t,
-                    step_size=stein_step_size,
-                    rejected_penalty=stein_rejected_penalty,
-                    bandwidth=stein_bandwidth,
-                )
+                for _ in range(stein_num_steps):
+                    current_latents, _ = stein_step(
+                        x_t=current_latents,
+                        accepted_x0=accepted_particles,
+                        rejected_x0=rejected_particles,
+                        sigma_t=sigma_t,
+                        step_size=stein_step_size,
+                        rejected_penalty=stein_rejected_penalty,
+                        bandwidth=stein_bandwidth,
+                    )
 
         if callback_on_step_end is not None:
             user_kwargs = dict(callback_kwargs)
@@ -325,6 +330,7 @@ def split_samples(
     steer_start_timestep: Optional[int] = None,
     steer_end_timestep: int = 0,
     stein_step_size: float = 0.05,
+    stein_num_steps: int = 1,
     stein_bandwidth: Optional[float] = None,
     stein_rejected_penalty: float = 0.0,
     accepted_x0: Optional[torch.Tensor] = None,
@@ -351,6 +357,7 @@ def split_samples(
         steer_start_timestep=steer_start_timestep,
         steer_end_timestep=steer_end_timestep,
         stein_step_size=stein_step_size,
+        stein_num_steps=stein_num_steps,
         stein_bandwidth=stein_bandwidth,
         stein_rejected_penalty=stein_rejected_penalty,
         num_images_per_prompt=num_images_per_prompt,
@@ -405,6 +412,7 @@ def iterative_sample_with_stein(
     steer_end_timestep: int = 0,
     base_threshold: float = 0.0,
     stein_step_size: float = 0.05,
+    stein_num_steps: int = 1,
     stein_bandwidth: Optional[float] = None,
     stein_rejected_penalty: float = 0.0,
     num_inference_steps: int = 50,
@@ -455,6 +463,7 @@ def iterative_sample_with_stein(
             steer_start_timestep=steer_start_timestep,
             steer_end_timestep=steer_end_timestep,
             stein_step_size=stein_step_size,
+            stein_num_steps=stein_num_steps,
             stein_bandwidth=stein_bandwidth,
             stein_rejected_penalty=stein_rejected_penalty,
             accepted_x0=accepted_pool if use_stein else None,
@@ -473,7 +482,7 @@ def iterative_sample_with_stein(
             best_mean_reward = mean_reward
 
         # Base threshold is the best mean reward observed so far.
-        running_base_threshold = best_mean_reward + std_reward / 2.0
+        running_base_threshold = best_mean_reward
         threshold = running_base_threshold
 
         final_latents = split["latent_trajectory"][-1]
