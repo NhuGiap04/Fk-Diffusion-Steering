@@ -318,6 +318,80 @@ def _resolve_prompt_and_particles(
     )
 
 
+def _get_restart_timesteps(
+    model: BaseSDXL,
+    *,
+    num_inference_steps: int,
+    steer_start_timestep: int,
+    steer_end_timestep: int,
+    device: torch.device,
+) -> List[int]:
+    """Build a scheduler-consistent denoising tail between steer start and end."""
+    model.scheduler.set_timesteps(num_inference_steps, device=device)
+    schedule = [int(t.item()) if isinstance(t, torch.Tensor) else int(t) for t in model.scheduler.timesteps]
+
+    t_hi = max(steer_start_timestep, steer_end_timestep)
+    t_lo = min(steer_start_timestep, steer_end_timestep)
+    selected = [t for t in schedule if t_lo <= t <= t_hi]
+
+    if selected:
+        return selected
+
+    # Fallback to nearest available scheduler step and continue to the denoising end.
+    nearest_idx = min(range(len(schedule)), key=lambda i: abs(schedule[i] - steer_start_timestep))
+    return [t for t in schedule[nearest_idx:] if t >= t_lo]
+
+
+def _randn_like_with_generator(
+    x: torch.Tensor,
+    generator: Optional[Union[torch.Generator, List[torch.Generator]]],
+) -> torch.Tensor:
+    """Generate Gaussian noise matching x with optional per-sample generators."""
+    if isinstance(generator, list):
+        if len(generator) != x.shape[0]:
+            raise ValueError(
+                "When generator is a list, its length must match batch size "
+                f"(got {len(generator)} vs {x.shape[0]})"
+            )
+        parts = [
+            torch.randn(
+                (1, *x.shape[1:]),
+                device=x.device,
+                dtype=x.dtype,
+                generator=generator[i],
+            )
+            for i in range(x.shape[0])
+        ]
+        return torch.cat(parts, dim=0)
+
+    return torch.randn_like(x, generator=generator)
+
+
+def _renoise_x0_to_timestep(
+    model: BaseSDXL,
+    x0_latents: torch.Tensor,
+    *,
+    timestep: int,
+    generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+    eps: float = 1e-8,
+) -> torch.Tensor:
+    """Forward diffuse x0 latents to x_t at the requested scheduler timestep."""
+    # Set a one-step schedule so scheduler sigma aligns with `timestep` for sigma-backed schedulers.
+    model.scheduler.set_timesteps(timesteps=[int(timestep)], device=x0_latents.device)
+    sigma_t = get_scheduler_sigmas_for_timesteps(
+        scheduler=model.scheduler,
+        timesteps=[int(timestep)],
+        device=x0_latents.device,
+    )[0].to(device=x0_latents.device, dtype=x0_latents.dtype)
+
+    alpha_bar_t = 1.0 / torch.clamp(1.0 + sigma_t * sigma_t, min=eps)
+    sqrt_alpha_bar_t = torch.sqrt(torch.clamp(alpha_bar_t, min=eps))
+    sqrt_one_minus_alpha_bar_t = torch.sqrt(torch.clamp(1.0 - alpha_bar_t, min=eps))
+
+    noise = _randn_like_with_generator(x0_latents, generator)
+    return sqrt_alpha_bar_t * x0_latents + sqrt_one_minus_alpha_bar_t * noise
+
+
 @torch.no_grad()
 def split_samples(
     model: BaseSDXL,
@@ -419,19 +493,23 @@ def iterative_sample_with_stein(
     guidance_scale: float = 5.0,
     guidance_reward_fn: str = "ImageReward",
     metric_to_chase: Optional[str] = None,
+    early_stop_epsilon: Optional[float] = None,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
-    Iteratively sample and update accepted pool, mirroring steer.py loop logic.
+    Iteratively self-improve a fixed particle set with thresholded Stein steering.
 
     Loop behavior:
-    1) First loop samples without Stein steering.
-    2) Later loops steer using an accumulated pool of accepted particles.
-    3) Base threshold tracks the best mean reward seen so far.
-    4) Whenever base threshold increases, pool samples with reward below it are pruned.
+    1) First loop samples once from noise.
+    2) Later loops re-noise only rejected x0 to `steer_start_timestep`.
+    3) Rejected particles are re-denoised while steering with the full accepted pool.
+    4) Threshold is updated after each loop and used for the next loop.
+    5) Optional early stop if reward improvement is below epsilon for 2 consecutive transitions.
     """
     if num_loops <= 0:
         raise ValueError("num_loops must be > 0")
+    if early_stop_epsilon is not None and early_stop_epsilon < 0:
+        raise ValueError("early_stop_epsilon must be >= 0 when provided")
 
     all_results: List[Any] = []
     all_trajectories: List[List[torch.Tensor]] = []
@@ -442,38 +520,131 @@ def iterative_sample_with_stein(
 
     best_mean_reward = float(base_threshold)
     running_base_threshold = float(base_threshold)
+    best_reward = float("-inf")
+    std_reward = 0.0
+    min_reward = float("inf")
     accepted_pool: Optional[torch.Tensor] = None
     accepted_pool_rewards: Optional[torch.Tensor] = None
     rejected_pool: Optional[torch.Tensor] = None
+    accepted_images_pool: List[Any] = []
+    rejected_images_pool: List[Any] = []
+
+    previous_loop_mean_reward: Optional[float] = None
+    consecutive_small_improvement = 0
+    early_stopped = False
+    early_stop_reason: Optional[str] = None
 
     for loop_idx in range(num_loops):
-        use_stein = (
-            loop_idx > 0
-            and accepted_pool is not None
-            and accepted_pool.shape[0] > 0
-        )
+        if loop_idx == 0:
+            generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
+                prompt=prompt,
+                num_particles=num_particles,
+            )
 
-        split = split_samples(
-            model=model,
-            prompt=prompt,
-            num_particles=num_particles,
-            threshold=running_base_threshold,
-            guidance_reward_fn=guidance_reward_fn,
-            metric_to_chase=metric_to_chase,
-            steer_start_timestep=steer_start_timestep,
-            steer_end_timestep=steer_end_timestep,
-            stein_step_size=stein_step_size,
-            stein_num_steps=stein_num_steps,
-            stein_bandwidth=stein_bandwidth,
-            stein_rejected_penalty=stein_rejected_penalty,
-            accepted_x0=accepted_pool if use_stein else None,
-            rejected_x0=rejected_pool if use_stein else None,
-            num_inference_steps=num_inference_steps,
-            guidance_scale=guidance_scale,
-            **kwargs,
-        )
+            result, latent_trajectory = steer_sample(
+                model=model,
+                prompt=generation_prompt,
+                num_images_per_prompt=num_images_per_prompt,
+                num_inference_steps=num_inference_steps,
+                guidance_scale=guidance_scale,
+                output_type="pil",
+                return_dict=True,
+                **kwargs,
+            )
 
-        rewards = split["rewards"]
+            images = list(result.images)
+            rewards = torch.as_tensor(
+                get_reward_function(
+                    reward_name=guidance_reward_fn,
+                    images=images,
+                    prompts=reward_prompts,
+                    metric_to_chase=metric_to_chase or "overall_score",
+                ),
+                dtype=torch.float32,
+            )
+            final_latents = latent_trajectory[-1]
+            use_stein = False
+        else:
+            if accepted_pool is None or accepted_pool.shape[0] == 0:
+                early_stopped = True
+                early_stop_reason = "No accepted particles left to steer rejected particles."
+                break
+
+            if rejected_pool is None or rejected_pool.shape[0] == 0:
+                early_stopped = True
+                early_stop_reason = "No rejected particles left to resample."
+                break
+
+            restart_timesteps = _get_restart_timesteps(
+                model=model,
+                num_inference_steps=num_inference_steps,
+                steer_start_timestep=steer_start_timestep,
+                steer_end_timestep=steer_end_timestep,
+                device=rejected_pool.device,
+            )
+            if len(restart_timesteps) == 0:
+                raise ValueError(
+                    "Unable to build restart timesteps for requested steer range "
+                    f"[{steer_start_timestep}, {steer_end_timestep}]"
+                )
+
+            generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
+                prompt=prompt,
+                num_particles=int(rejected_pool.shape[0]),
+            )
+
+            restart_latents = _renoise_x0_to_timestep(
+                model=model,
+                x0_latents=rejected_pool,
+                timestep=int(restart_timesteps[0]),
+                generator=kwargs.get("generator", None),
+            )
+
+            result, latent_trajectory = steer_sample(
+                model=model,
+                prompt=generation_prompt,
+                accepted_x0=accepted_pool,
+                rejected_x0=rejected_pool,
+                steer_start_timestep=steer_start_timestep,
+                steer_end_timestep=steer_end_timestep,
+                stein_step_size=stein_step_size,
+                stein_num_steps=stein_num_steps,
+                stein_bandwidth=stein_bandwidth,
+                stein_rejected_penalty=stein_rejected_penalty,
+                timesteps=restart_timesteps,
+                num_images_per_prompt=num_images_per_prompt,
+                num_inference_steps=len(restart_timesteps),
+                guidance_scale=guidance_scale,
+                latents=restart_latents,
+                output_type="pil",
+                return_dict=True,
+                **kwargs,
+            )
+
+            resampled_images = list(result.images)
+            resampled_rewards = torch.as_tensor(
+                get_reward_function(
+                    reward_name=guidance_reward_fn,
+                    images=resampled_images,
+                    prompts=reward_prompts,
+                    metric_to_chase=metric_to_chase or "overall_score",
+                ),
+                dtype=torch.float32,
+            )
+            resampled_latents = latent_trajectory[-1]
+
+            images = [*accepted_images_pool, *resampled_images]
+            rewards = torch.cat(
+                [
+                    accepted_pool_rewards if accepted_pool_rewards is not None else torch.empty(0, dtype=torch.float32),
+                    resampled_rewards,
+                ],
+                dim=0,
+            )
+            final_latents = torch.cat([accepted_pool, resampled_latents], dim=0)
+            use_stein = True
+
+        current_particle_count = max(int(rewards.shape[0]), 1)
         best_reward = float(rewards.max().item())
         mean_reward = float(rewards.mean().item())
         std_reward = float(rewards.std().item())
@@ -482,11 +653,10 @@ def iterative_sample_with_stein(
         if mean_reward > best_mean_reward:
             best_mean_reward = mean_reward
 
-        # Base threshold is the best mean reward observed so far.
-        running_base_threshold = best_mean_reward + std_reward / num_particles
+        # Update threshold after each (re)sampled loop; this drives the next loop split.
+        running_base_threshold = best_mean_reward + std_reward / float(current_particle_count)
         threshold = running_base_threshold
 
-        final_latents = split["latent_trajectory"][-1]
         accept_mask = rewards >= threshold
         reject_mask = ~accept_mask
 
@@ -494,44 +664,17 @@ def iterative_sample_with_stein(
         rejected_latents = final_latents[reject_mask]
         accepted_rewards = rewards[accept_mask].to(dtype=torch.float32).cpu()
 
-        if accepted_latents.shape[0] > 0:
-            if accepted_pool is None:
-                accepted_pool = accepted_latents
-                accepted_pool_rewards = accepted_rewards
-            else:
-                accepted_pool = torch.cat([accepted_pool, accepted_latents], dim=0)
-                assert accepted_pool_rewards is not None
-                accepted_pool_rewards = torch.cat([accepted_pool_rewards, accepted_rewards], dim=0)
+        accepted_images = [img for i, img in enumerate(images) if bool(accept_mask[i].item())]
+        rejected_images = [img for i, img in enumerate(images) if bool(reject_mask[i].item())]
 
-        if rejected_latents.shape[0] > 0:
-            if rejected_pool is None:
-                rejected_pool = rejected_latents
-            else:
-                rejected_pool = torch.cat([rejected_pool, rejected_latents], dim=0)
+        accepted_pool = accepted_latents
+        accepted_pool_rewards = accepted_rewards
+        rejected_pool = rejected_latents
+        accepted_images_pool = accepted_images
+        rejected_images_pool = rejected_images
 
-        # Keep pool and pool rewards aligned, and move pruned entries to rejected pool.
-        if accepted_pool is not None:
-            assert accepted_pool_rewards is not None
-            keep_mask = accepted_pool_rewards >= threshold
-            pruned_to_rejected = accepted_pool[~keep_mask]
-            pruned_accepted_pool = accepted_pool[keep_mask]
-            pruned_accepted_rewards = accepted_pool_rewards[keep_mask]
-
-            if pruned_to_rejected.shape[0] > 0:
-                if rejected_pool is None:
-                    rejected_pool = pruned_to_rejected
-                else:
-                    rejected_pool = torch.cat([rejected_pool, pruned_to_rejected], dim=0)
-
-            if pruned_accepted_pool.shape[0] == 0:
-                accepted_pool = None
-                accepted_pool_rewards = None
-            else:
-                accepted_pool = pruned_accepted_pool
-                accepted_pool_rewards = pruned_accepted_rewards
-
-        all_results.append(split["result"])
-        all_trajectories.append(split["latent_trajectory"])
+        all_results.append(result)
+        all_trajectories.append(latent_trajectory)
         all_rewards.append(rewards)
         all_thresholds.append(float(threshold))
         all_accepted.append(accepted_latents)
@@ -551,6 +694,22 @@ def iterative_sample_with_stein(
             f"rejected_pool={0 if rejected_pool is None else rejected_pool.shape[0]}"
         )
 
+        if early_stop_epsilon is not None:
+            if previous_loop_mean_reward is not None:
+                improvement = mean_reward - previous_loop_mean_reward
+                if improvement < early_stop_epsilon:
+                    consecutive_small_improvement += 1
+                else:
+                    consecutive_small_improvement = 0
+
+                if consecutive_small_improvement >= 2:
+                    early_stopped = True
+                    early_stop_reason = (
+                        "Mean reward improvement was below epsilon for two consecutive loop transitions."
+                    )
+                    break
+            previous_loop_mean_reward = mean_reward
+
     return {
         "results": all_results,
         "trajectories": all_trajectories,
@@ -561,10 +720,15 @@ def iterative_sample_with_stein(
         "accepted_pool": accepted_pool,
         "accepted_pool_rewards": accepted_pool_rewards,
         "rejected_pool": rejected_pool,
+        "accepted_images_pool": accepted_images_pool,
+        "rejected_images_pool": rejected_images_pool,
         "best_mean_reward": best_mean_reward,
         "best_reward": best_reward,
         "std_reward": std_reward,
         "min_reward": min_reward,
+        "early_stopped": early_stopped,
+        "early_stop_reason": early_stop_reason,
+        "completed_loops": len(all_rewards),
     }
 
 
