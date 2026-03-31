@@ -1,3 +1,4 @@
+import inspect
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
@@ -342,6 +343,11 @@ def _get_restart_timesteps(
     return [t for t in schedule[nearest_idx:] if t >= t_lo]
 
 
+def _scheduler_supports_custom_timesteps(model: BaseSDXL) -> bool:
+    """Return whether scheduler.set_timesteps supports a custom `timesteps` argument."""
+    return "timesteps" in set(inspect.signature(model.scheduler.set_timesteps).parameters.keys())
+
+
 def _randn_like_with_generator(
     x: torch.Tensor,
     generator: Optional[Union[torch.Generator, List[torch.Generator]]],
@@ -583,18 +589,34 @@ def iterative_sample_with_stein(
                 early_stop_reason = "No rejected particles left to resample."
                 break
 
-            restart_timesteps = _get_restart_timesteps(
-                model=model,
-                num_inference_steps=num_inference_steps,
-                steer_start_timestep=steer_start_timestep,
-                steer_end_timestep=steer_end_timestep,
-                device=rejected_pool.device,
-            )
-            if len(restart_timesteps) == 0:
-                raise ValueError(
-                    "Unable to build restart timesteps for requested steer range "
-                    f"[{steer_start_timestep}, {steer_end_timestep}]"
+            supports_custom_timesteps = _scheduler_supports_custom_timesteps(model)
+            restart_timesteps: Optional[List[int]] = None
+            if supports_custom_timesteps:
+                restart_timesteps = _get_restart_timesteps(
+                    model=model,
+                    num_inference_steps=num_inference_steps,
+                    steer_start_timestep=steer_start_timestep,
+                    steer_end_timestep=steer_end_timestep,
+                    device=rejected_pool.device,
                 )
+                if len(restart_timesteps) == 0:
+                    raise ValueError(
+                        "Unable to build restart timesteps for requested steer range "
+                        f"[{steer_start_timestep}, {steer_end_timestep}]"
+                    )
+                restart_noise_timestep = int(restart_timesteps[0])
+                restart_num_inference_steps = len(restart_timesteps)
+            else:
+                # Compatibility fallback for schedulers that reject custom timestep schedules.
+                model.scheduler.set_timesteps(num_inference_steps, device=rejected_pool.device)
+                schedule = [
+                    int(t.item()) if isinstance(t, torch.Tensor) else int(t)
+                    for t in model.scheduler.timesteps
+                ]
+                if len(schedule) == 0:
+                    raise ValueError("Scheduler produced empty timesteps schedule")
+                restart_noise_timestep = int(schedule[0])
+                restart_num_inference_steps = int(num_inference_steps)
 
             generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
                 prompt=prompt,
@@ -604,30 +626,33 @@ def iterative_sample_with_stein(
             restart_latents = _renoise_x0_to_timestep(
                 model=model,
                 x0_latents=rejected_pool,
-                timestep=int(restart_timesteps[0]),
+                timestep=restart_noise_timestep,
                 generator=kwargs.get("generator", None),
             )
 
-            result, latent_trajectory = steer_sample(
-                model=model,
-                prompt=generation_prompt,
-                accepted_x0=accepted_pool,
-                rejected_x0=rejected_pool,
-                steer_start_timestep=steer_start_timestep,
-                steer_end_timestep=steer_end_timestep,
-                stein_step_size=stein_step_size,
-                stein_num_steps=stein_num_steps,
-                stein_bandwidth=stein_bandwidth,
-                stein_rejected_penalty=stein_rejected_penalty,
-                timesteps=restart_timesteps,
-                num_images_per_prompt=num_images_per_prompt,
-                num_inference_steps=len(restart_timesteps),
-                guidance_scale=guidance_scale,
-                latents=restart_latents,
-                output_type="pil",
-                return_dict=True,
+            steer_sample_kwargs: Dict[str, Any] = {
+                "model": model,
+                "prompt": generation_prompt,
+                "accepted_x0": accepted_pool,
+                "rejected_x0": rejected_pool,
+                "steer_start_timestep": steer_start_timestep,
+                "steer_end_timestep": steer_end_timestep,
+                "stein_step_size": stein_step_size,
+                "stein_num_steps": stein_num_steps,
+                "stein_bandwidth": stein_bandwidth,
+                "stein_rejected_penalty": stein_rejected_penalty,
+                "num_images_per_prompt": num_images_per_prompt,
+                "num_inference_steps": restart_num_inference_steps,
+                "guidance_scale": guidance_scale,
+                "latents": restart_latents,
+                "output_type": "pil",
+                "return_dict": True,
                 **kwargs,
-            )
+            }
+            if restart_timesteps is not None:
+                steer_sample_kwargs["timesteps"] = restart_timesteps
+
+            result, latent_trajectory = steer_sample(**steer_sample_kwargs)
 
             resampled_images = list(result.images)
             resampled_rewards = torch.as_tensor(
