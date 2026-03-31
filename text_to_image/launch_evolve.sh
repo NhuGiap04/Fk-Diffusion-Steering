@@ -11,8 +11,8 @@ python launch_evolve_runs.py \
   --guidance_reward_fn ImageReward \
   --steer_start_timestep 400 \
   --steer_end_timestep 150 \
-  --stein_step_size 1e-5 \
-  --stein_rejected_penalty 0.1 \
-  --stein_num_steps 20 \
+  --stein_step_size 1e-4 \
+  --stein_rejected_penalty 0.2 \
+  --stein_num_steps 10 \
   --early_stop_epsilon 1e-4 \
   --output_dir benchmark_ir_outputs_evolve
