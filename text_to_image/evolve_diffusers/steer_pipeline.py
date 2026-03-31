@@ -376,8 +376,9 @@ def _renoise_x0_to_timestep(
     eps: float = 1e-8,
 ) -> torch.Tensor:
     """Forward diffuse x0 latents to x_t at the requested scheduler timestep."""
-    # Set a one-step schedule so scheduler sigma aligns with `timestep` for sigma-backed schedulers.
-    model.scheduler.set_timesteps(timesteps=[int(timestep)], device=x0_latents.device)
+    # Avoid scheduler.set_timesteps(timesteps=...), which is unsupported by DDIMScheduler.
+    # get_scheduler_sigmas_for_timesteps can recover sigma from scheduler internals
+    # (e.g., alphas_cumprod) for direct training timestep indices.
     sigma_t = get_scheduler_sigmas_for_timesteps(
         scheduler=model.scheduler,
         timesteps=[int(timestep)],
