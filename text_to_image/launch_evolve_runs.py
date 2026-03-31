@@ -69,6 +69,15 @@ def tensor_stats(x: torch.Tensor) -> Dict[str, float]:
     }
 
 
+def save_final_images(images: List[Any], prompt_output_dir: Path) -> int:
+    """Save only the final image pool for a prompt."""
+    sample_dir = prompt_output_dir / "samples"
+    sample_dir.mkdir(parents=True, exist_ok=True)
+    for image_idx, image in enumerate(images):
+        image.save(sample_dir / f"{image_idx:05d}.png")
+    return len(images)
+
+
 def main(args: argparse.Namespace) -> None:
     set_seed(args.seed)
 
@@ -92,6 +101,9 @@ def main(args: argparse.Namespace) -> None:
     for prompt_idx, item in enumerate(prompt_data):
         prompt_text = item["prompt"]
         item_id = item.get("id", f"prompt_{prompt_idx:05d}")
+
+        prompt_output_dir = output_dir / f"{prompt_idx:05d}"
+        prompt_output_dir.mkdir(parents=True, exist_ok=True)
 
         set_seed(args.seed + prompt_idx)
 
@@ -120,7 +132,7 @@ def main(args: argparse.Namespace) -> None:
         if completed_loops == 0:
             final_rewards = torch.empty(0, dtype=torch.float32)
             loop_stats = []
-            final_images = []
+            final_images: List[Any] = []
         else:
             final_rewards = loop_out["rewards"][-1].detach().cpu().float()
             loop_stats = []
@@ -130,7 +142,19 @@ def main(args: argparse.Namespace) -> None:
                 stats["loop"] = loop_i
                 stats["num_particles"] = int(loop_rewards.numel())
                 loop_stats.append(stats)
-            final_images = loop_out["results"][-1].images
+
+            # Final pool includes carried accepted images plus last-loop resampled/rejected images.
+            final_images = [
+                *list(loop_out.get("accepted_images_pool", []) or []),
+                *list(loop_out.get("rejected_images_pool", []) or []),
+            ]
+            if not final_images:
+                final_images = list(getattr(loop_out.get("results", [])[-1], "images", []) or [])
+
+        if args.save_individual_images:
+            saved_images_count = save_final_images(final_images, prompt_output_dir)
+        else:
+            saved_images_count = len(final_images)
 
         final_stats = tensor_stats(final_rewards)
 
@@ -152,6 +176,7 @@ def main(args: argparse.Namespace) -> None:
             "time_seconds": elapsed_seconds,
             "thresholds": [float(x) for x in loop_out.get("thresholds", [])],
             "loop_stats": loop_stats,
+            "final_saved_images": int(saved_images_count),
         }
 
         per_prompt_rows.append(row)
@@ -159,8 +184,6 @@ def main(args: argparse.Namespace) -> None:
         with open(per_prompt_jsonl, "a", encoding="utf-8") as f:
             f.write(json.dumps(row) + "\n")
 
-        prompt_output_dir = output_dir / f"{prompt_idx:05d}"
-        prompt_output_dir.mkdir(parents=True, exist_ok=True)
         with open(prompt_output_dir / "metadata.json", "w", encoding="utf-8") as f:
             json.dump(item, f, indent=2)
         with open(prompt_output_dir / "results.json", "w", encoding="utf-8") as f:
@@ -174,6 +197,7 @@ def main(args: argparse.Namespace) -> None:
             f"max={row['max_reward']:.4f} "
             f"min={row['min_reward']:.4f} "
             f"loops={row['completed_loops']} "
+            f"images={row['final_saved_images']} "
             f"secs={row['time_seconds']:.2f}"
         )
 
@@ -200,7 +224,7 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--max_prompts", type=int, default=None)
 
     parser.add_argument("--output_dir", type=str, default="benchmark_ir_outputs_evolve")
-    parser.add_argument("--save_individual_images", action="store_true")
+    parser.add_argument("--save_individual_images", action="store_true", default=True)
 
     parser.add_argument("--model_name", type=str, default="stabilityai/stable-diffusion-xl-base-1.0")
     parser.add_argument("--seed", type=int, default=42)

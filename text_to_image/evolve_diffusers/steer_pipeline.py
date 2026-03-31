@@ -93,10 +93,11 @@ def stein_step(
     sigma_t: Union[float, torch.Tensor],
     rejected_x0: Optional[torch.Tensor] = None,
     step_size: float = 0.05,
+    step_index: int = 0,
     rejected_penalty: float = 0.0,
     bandwidth: Optional[float] = None,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """One SVGD update step on latent particles at the current scheduler sigma."""
+    """One SVGD update with schedule epsilon_t = a / (t + 1)^0.55."""
     if x_t.ndim < 2 or accepted_x0.ndim < 2:
         raise ValueError("x_t and accepted_x0 must have at least 2 dims [B, ...]")
     if x_t.shape[1:] != accepted_x0.shape[1:]:
@@ -111,6 +112,8 @@ def stein_step(
             "x_t and rejected_x0 must have matching non-batch dimensions "
             f"(got {x_t.shape[1:]} vs {rejected_x0.shape[1:]})"
         )
+    if step_index < 0:
+        raise ValueError("step_index must be >= 0")
 
     x_shape = x_t.shape
     out_dtype = x_t.dtype
@@ -135,7 +138,8 @@ def stein_step(
         rejected_phi = stein_variational_vector_field(x=x_flat, score=rejected_score, bandwidth=bandwidth)
         phi = accepted_phi - rejected_penalty * rejected_phi
 
-    x_next = x_flat + step_size * phi
+    scheduled_step_size = float(step_size) / ((float(step_index) + 1.0) ** 0.55)
+    x_next = x_flat + scheduled_step_size * phi
     return x_next.to(dtype=out_dtype).reshape(x_shape), phi.to(dtype=out_dtype).reshape(x_shape)
 
 
@@ -212,8 +216,10 @@ def steer_sample(
         t_lo = min(steer_start_timestep, steer_end_timestep)
 
     latent_trajectory: List[torch.Tensor] = []
+    stein_update_idx = 0
 
     def _combined_step_callback(pipe, step_idx: int, t, callback_kwargs: Dict[str, Any]):
+        nonlocal stein_update_idx
         callback_updates: Dict[str, Any] = {}
         current_latents = callback_kwargs["latents"]
 
@@ -243,9 +249,11 @@ def steer_sample(
                         rejected_x0=rejected_particles,
                         sigma_t=sigma_t,
                         step_size=stein_step_size,
+                        step_index=stein_update_idx,
                         rejected_penalty=stein_rejected_penalty,
                         bandwidth=stein_bandwidth,
                     )
+                    stein_update_idx += 1
 
         if callback_on_step_end is not None:
             user_kwargs = dict(callback_kwargs)
@@ -532,7 +540,7 @@ def iterative_sample_with_stein(
     all_accepted: List[torch.Tensor] = []
     all_rejected: List[torch.Tensor] = []
 
-    best_mean_reward = float(base_threshold)
+    best_mean_reward = -float("inf")
     running_base_threshold = float(base_threshold)
     best_reward = float("-inf")
     std_reward = 0.0
