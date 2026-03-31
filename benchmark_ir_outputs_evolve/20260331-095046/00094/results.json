@@ -1,0 +1,48 @@
+{
+  "prompt_index": 94,
+  "id": "003532-0061",
+  "prompt": "hyperdetailed samsung store, oak parquet, black walls, digital walls, plants, light corona octane",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.330702304840088,
+  "best_reward": 1.7338216304779053,
+  "mean_reward": 1.330702304840088,
+  "std_reward": 0.29422232508659363,
+  "max_reward": 1.7338216304779053,
+  "min_reward": 0.8561225533485413,
+  "time_seconds": 84.850878,
+  "thresholds": [
+    0.8828272670507431,
+    1.2137275785207748,
+    1.3700194172561169
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.8330237865447998,
+      "std": 0.37269511818885803,
+      "max": 1.3453013896942139,
+      "min": 0.1923283487558365,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.1673089265823364,
+      "std": 0.3473653793334961,
+      "max": 1.7338216304779053,
+      "min": 0.684414803981781,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.330702304840088,
+      "std": 0.29422232508659363,
+      "max": 1.7338216304779053,
+      "min": 0.8561225533485413,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

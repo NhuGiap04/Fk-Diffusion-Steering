@@ -1,0 +1,48 @@
+{
+  "prompt_index": 85,
+  "id": "000606-0024",
+  "prompt": "frozen food logo",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5637458562850952,
+  "best_reward": 1.4212288856506348,
+  "mean_reward": 0.5637458562850952,
+  "std_reward": 0.5750876069068909,
+  "max_reward": 1.4212288856506348,
+  "min_reward": -0.5253608822822571,
+  "time_seconds": 79.660464,
+  "thresholds": [
+    0.13183532655239105,
+    0.6025530099868774,
+    0.6405951678752899
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.2169961780309677,
+      "std": 0.9865652322769165,
+      "max": 1.2014704942703247,
+      "min": -2.15728497505188,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.502124547958374,
+      "std": 0.7515377998352051,
+      "max": 1.4212288856506348,
+      "min": -1.2321816682815552,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5637458562850952,
+      "std": 0.5750876069068909,
+      "max": 1.4212288856506348,
+      "min": -0.5253608822822571,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

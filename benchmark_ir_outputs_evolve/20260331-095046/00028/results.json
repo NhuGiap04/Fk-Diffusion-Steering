@@ -1,0 +1,30 @@
+{
+  "prompt_index": 28,
+  "id": "007209-0011",
+  "prompt": "photo by josh pierce and prateek vatash and roman bratschi, a giant huge beautiful mid - century modern revival mansion palace with green plants and giant reflective windows on a huge scenic cliff overlooking the ocean, reflections, lighting and shadows, haze, light",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": -0.026620103046298027,
+  "mean_reward": -0.41310346126556396,
+  "std_reward": 0.2763085663318634,
+  "max_reward": -0.026620103046298027,
+  "min_reward": -0.7947998046875,
+  "time_seconds": 39.085129,
+  "thresholds": [
+    0.03692328557372093
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.41310346126556396,
+      "std": 0.2763085663318634,
+      "max": -0.026620103046298027,
+      "min": -0.7947998046875,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

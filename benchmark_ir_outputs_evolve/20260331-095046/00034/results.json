@@ -1,0 +1,48 @@
+{
+  "prompt_index": 34,
+  "id": "007206-0148",
+  "prompt": "mountains range with waterfall, purple haze, art by greg rutkowski and magali villeneuve",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.8814691305160522,
+  "best_reward": 1.9328746795654297,
+  "mean_reward": 1.8814691305160522,
+  "std_reward": 0.028969990089535713,
+  "max_reward": 1.9328746795654297,
+  "min_reward": 1.8380193710327148,
+  "time_seconds": 79.807539,
+  "thresholds": [
+    1.873907349538058,
+    1.8837946825660765,
+    1.8853404081892222
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.8686001300811768,
+      "std": 0.039715591818094254,
+      "max": 1.9328746795654297,
+      "min": 1.7929155826568604,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.8796191215515137,
+      "std": 0.031247038394212723,
+      "max": 1.9328746795654297,
+      "min": 1.814518928527832,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.8814691305160522,
+      "std": 0.028969990089535713,
+      "max": 1.9328746795654297,
+      "min": 1.8380193710327148,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

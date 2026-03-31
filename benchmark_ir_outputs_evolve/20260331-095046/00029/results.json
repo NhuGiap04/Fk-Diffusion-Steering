@@ -1,0 +1,48 @@
+{
+  "prompt_index": 29,
+  "id": "007171-0040",
+  "prompt": "A foggy forest with cherry blossom leaves on the ground, liminal, quiet",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.9870162606239319,
+  "best_reward": 1.5324482917785645,
+  "mean_reward": 0.9454863667488098,
+  "std_reward": 0.4418621063232422,
+  "max_reward": 1.5324482917785645,
+  "min_reward": 0.07787086814641953,
+  "time_seconds": 79.597274,
+  "thresholds": [
+    0.9579704627394676,
+    1.0359683856368065,
+    1.04606257006526
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.9122809171676636,
+      "std": 0.341909259557724,
+      "max": 1.5324482917785645,
+      "min": 0.43546274304389954,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9870162606239319,
+      "std": 0.36632415652275085,
+      "max": 1.5324482917785645,
+      "min": 0.36070361733436584,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9454863667488098,
+      "std": 0.4418621063232422,
+      "max": 1.5324482917785645,
+      "min": 0.07787086814641953,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

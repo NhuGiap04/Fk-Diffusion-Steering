@@ -1,0 +1,22 @@
+{
+  "prompt_path": "prompt_files/benchmark_ir.json",
+  "max_prompts": null,
+  "output_dir": "benchmark_ir_outputs_evolve",
+  "save_individual_images": false,
+  "model_name": "stabilityai/stable-diffusion-xl-base-1.0",
+  "seed": 42,
+  "num_loops": 3,
+  "num_particles": 8,
+  "num_inference_steps": 50,
+  "guidance_scale": 5.0,
+  "steer_start_timestep": 400,
+  "steer_end_timestep": 150,
+  "base_threshold": 0.0,
+  "stein_step_size": 0.0001,
+  "stein_num_steps": 10,
+  "stein_bandwidth": null,
+  "stein_rejected_penalty": 0.1,
+  "guidance_reward_fn": "ImageReward",
+  "metric_to_chase": null,
+  "early_stop_epsilon": 0.0001
+}

@@ -1,0 +1,48 @@
+{
+  "prompt_index": 30,
+  "id": "007204-0161",
+  "prompt": "dramatically lit, intricate fractal sculpture of an ancient, weathered, mossy marble sculpture of a dragonfly",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5570506453514099,
+  "best_reward": 1.28548002243042,
+  "mean_reward": 0.5570506453514099,
+  "std_reward": 0.5230773091316223,
+  "max_reward": 1.28548002243042,
+  "min_reward": -0.29595208168029785,
+  "time_seconds": 84.849582,
+  "thresholds": [
+    0.3415348306298256,
+    0.5199028626084328,
+    0.6269497871398926
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.25469857454299927,
+      "std": 0.649823009967804,
+      "max": 1.28548002243042,
+      "min": -0.43155694007873535,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.4366193413734436,
+      "std": 0.6232367753982544,
+      "max": 1.28548002243042,
+      "min": -0.533037006855011,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5570506453514099,
+      "std": 0.5230773091316223,
+      "max": 1.28548002243042,
+      "min": -0.29595208168029785,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

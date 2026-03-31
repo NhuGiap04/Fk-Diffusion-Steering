@@ -1,0 +1,48 @@
+{
+  "prompt_index": 19,
+  "id": "007133-0110",
+  "prompt": "3D render of a cute tribal anime boy in a loincloth, fantasy, artwork, fluffy hair, mid -, winning, very very very beautiful",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.257285237312317,
+  "best_reward": 1.5361599922180176,
+  "mean_reward": 1.257285237312317,
+  "std_reward": 0.25943660736083984,
+  "max_reward": 1.5361599922180176,
+  "min_reward": 0.6994598507881165,
+  "time_seconds": 84.997824,
+  "thresholds": [
+    0.7231431379914284,
+    1.105777595192194,
+    1.2919539101421833
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.6411846280097961,
+      "std": 0.6133213043212891,
+      "max": 1.461722731590271,
+      "min": -0.649412214756012,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.0736849308013916,
+      "std": 0.24015949666500092,
+      "max": 1.461722731590271,
+      "min": 0.7866533994674683,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.257285237312317,
+      "std": 0.25943660736083984,
+      "max": 1.5361599922180176,
+      "min": 0.6994598507881165,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

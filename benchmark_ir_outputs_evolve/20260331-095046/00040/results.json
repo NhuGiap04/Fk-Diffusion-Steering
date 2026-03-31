@@ -1,0 +1,48 @@
+{
+  "prompt_index": 40,
+  "id": "007837-0019",
+  "prompt": "plants, flowers, trees being mixed in a bowl",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5450759530067444,
+  "best_reward": 0.6762514710426331,
+  "mean_reward": 0.5450759530067444,
+  "std_reward": 0.11475206911563873,
+  "max_reward": 0.6762514710426331,
+  "min_reward": 0.3508073091506958,
+  "time_seconds": 69.584226,
+  "thresholds": [
+    0.42744792625308037,
+    0.4342814274132252,
+    0.5604103431105614
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.38924258947372437,
+      "std": 0.28590255975723267,
+      "max": 0.6762514710426331,
+      "min": -0.24262495338916779,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.39647603034973145,
+      "std": 0.28290969133377075,
+      "max": 0.6762514710426331,
+      "min": -0.13167007267475128,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5450759530067444,
+      "std": 0.11475206911563873,
+      "max": 0.6762514710426331,
+      "min": 0.3508073091506958,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

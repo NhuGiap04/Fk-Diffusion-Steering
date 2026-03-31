@@ -1,0 +1,48 @@
+{
+  "prompt_index": 27,
+  "id": "007268-0100",
+  "prompt": "tumultuous plunging waves, anime, artwork, studio ghibli, stylized, in an anime format",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.9534642696380615,
+  "best_reward": 1.3454023599624634,
+  "mean_reward": 0.9534642696380615,
+  "std_reward": 0.29352647066116333,
+  "max_reward": 1.3454023599624634,
+  "min_reward": 0.48226362466812134,
+  "time_seconds": 84.973698,
+  "thresholds": [
+    0.867185190320015,
+    0.9395523965358734,
+    0.9926883950829506
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.8245928883552551,
+      "std": 0.3187315762042999,
+      "max": 1.3454023599624634,
+      "min": 0.2803890109062195,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8999290466308594,
+      "std": 0.29651397466659546,
+      "max": 1.3454023599624634,
+      "min": 0.416114866733551,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9534642696380615,
+      "std": 0.29352647066116333,
+      "max": 1.3454023599624634,
+      "min": 0.48226362466812134,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

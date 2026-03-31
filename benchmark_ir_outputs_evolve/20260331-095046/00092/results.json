@@ -1,0 +1,48 @@
+{
+  "prompt_index": 92,
+  "id": "000969-0041",
+  "prompt": "Beatiful Cameraphone photograph of inside a room within an empty mall",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.027440592646598816,
+  "best_reward": 0.3638474643230438,
+  "mean_reward": -0.09672362357378006,
+  "std_reward": 0.5808703899383545,
+  "max_reward": 0.3638474643230438,
+  "min_reward": -1.371045708656311,
+  "time_seconds": 69.510526,
+  "thresholds": [
+    0.06982985883951187,
+    0.07041173428297043,
+    0.10506266355514526
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.10094186663627625,
+      "std": 0.5225588083267212,
+      "max": 0.3638474643230438,
+      "min": -1.1317474842071533,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.027440592646598816,
+      "std": 0.3215665817260742,
+      "max": 0.3638474643230438,
+      "min": -0.47711893916130066,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": -0.09672362357378006,
+      "std": 0.5808703899383545,
+      "max": 0.3638474643230438,
+      "min": -1.371045708656311,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

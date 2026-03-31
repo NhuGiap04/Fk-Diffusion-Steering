@@ -1,0 +1,48 @@
+{
+  "prompt_index": 18,
+  "id": "007135-0056",
+  "prompt": "A majestic landscape featuring a river, mountains and a forest, A small group of birds is flying in the sky, Harsh winter, very windy, There is a man walking in a deep snow, Cinematic, very, beautiful, painting, in the, style, of Lord of the rings",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.6377393007278442,
+  "best_reward": 1.8452509641647339,
+  "mean_reward": 1.4410854578018188,
+  "std_reward": 0.835487425327301,
+  "max_reward": 1.8452509641647339,
+  "min_reward": -0.7646451592445374,
+  "time_seconds": 64.604646,
+  "thresholds": [
+    1.6346023455262184,
+    1.6688100341707468,
+    1.749386005103588
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.6061255931854248,
+      "std": 0.21310050785541534,
+      "max": 1.816362977027893,
+      "min": 1.255189061164856,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.6377393007278442,
+      "std": 0.23251207172870636,
+      "max": 1.8452509641647339,
+      "min": 1.192486047744751,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.4410854578018188,
+      "std": 0.835487425327301,
+      "max": 1.8452509641647339,
+      "min": -0.7646451592445374,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

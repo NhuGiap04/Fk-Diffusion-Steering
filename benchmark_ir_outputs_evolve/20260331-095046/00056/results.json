@@ -1,0 +1,48 @@
+{
+  "prompt_index": 56,
+  "id": "010374-0099",
+  "prompt": "cat with bunny ears",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.6544189453125,
+  "best_reward": 1.891122579574585,
+  "mean_reward": 1.477859377861023,
+  "std_reward": 0.5103220343589783,
+  "max_reward": 1.891122579574585,
+  "min_reward": 0.29610684514045715,
+  "time_seconds": 69.723304,
+  "thresholds": [
+    1.2680599689483643,
+    1.6741679906845093,
+    1.7226135954260826
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.1318695545196533,
+      "std": 1.019155740737915,
+      "max": 1.891122579574585,
+      "min": -0.9608893990516663,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.6544189453125,
+      "std": 0.14778831601142883,
+      "max": 1.891122579574585,
+      "min": 1.436970591545105,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.477859377861023,
+      "std": 0.5103220343589783,
+      "max": 1.891122579574585,
+      "min": 0.29610684514045715,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

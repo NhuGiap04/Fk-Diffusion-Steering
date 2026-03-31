@@ -1,0 +1,48 @@
+{
+  "prompt_index": 61,
+  "id": "010525-0074",
+  "prompt": "a nova scotia duck tolling retriever with white chest and pink nose, professional, photography, of, very",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.6890019774436951,
+  "best_reward": 0.8868073225021362,
+  "mean_reward": 0.6890019774436951,
+  "std_reward": 0.13359595835208893,
+  "max_reward": 0.8868073225021362,
+  "min_reward": 0.4786171019077301,
+  "time_seconds": 79.636984,
+  "thresholds": [
+    0.28580912947654724,
+    0.5868710540235043,
+    0.7068544887006283
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.22202472388744354,
+      "std": 0.47731876373291016,
+      "max": 0.8868073225021362,
+      "min": -0.70061194896698,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5511480569839478,
+      "std": 0.2673264443874359,
+      "max": 0.8868073225021362,
+      "min": -0.037000883370637894,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.6890019774436951,
+      "std": 0.13359595835208893,
+      "max": 0.8868073225021362,
+      "min": 0.4786171019077301,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

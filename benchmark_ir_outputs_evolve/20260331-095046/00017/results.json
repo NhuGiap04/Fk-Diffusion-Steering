@@ -1,0 +1,48 @@
+{
+  "prompt_index": 17,
+  "id": "007045-0013",
+  "prompt": "classic model of atoms, made out of glass marbles and chrome steel rods, studio",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.632683515548706,
+  "best_reward": 1.6906399726867676,
+  "mean_reward": 1.632683515548706,
+  "std_reward": 0.06464459747076035,
+  "max_reward": 1.6906399726867676,
+  "min_reward": 1.4794206619262695,
+  "time_seconds": 69.575367,
+  "thresholds": [
+    1.4225343577563763,
+    1.607717853039503,
+    1.6413220129907131
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.3773912191390991,
+      "std": 0.3378203213214874,
+      "max": 1.6906399726867676,
+      "min": 0.6442568898200989,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.594797134399414,
+      "std": 0.09668979793787003,
+      "max": 1.6906399726867676,
+      "min": 1.4177807569503784,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.632683515548706,
+      "std": 0.06464459747076035,
+      "max": 1.6906399726867676,
+      "min": 1.4794206619262695,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

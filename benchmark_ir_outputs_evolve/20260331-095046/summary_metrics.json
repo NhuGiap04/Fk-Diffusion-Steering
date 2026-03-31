@@ -1,0 +1,9 @@
+{
+  "num_prompts": 100,
+  "reward_name": "ImageReward",
+  "avg_mean_reward": 0.8216347777843476,
+  "avg_std_reward": 0.29942338705062865,
+  "avg_max_reward": 1.1953806877881288,
+  "avg_min_reward": 0.2556142848147101,
+  "avg_time_seconds": 76.50618120000001
+}

@@ -1,0 +1,48 @@
+{
+  "prompt_index": 60,
+  "id": "010361-0095",
+  "prompt": "retro sci fi art of an astronaut next to jupiter in a car",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.7619457244873047,
+  "best_reward": 1.9169485569000244,
+  "mean_reward": 1.7619457244873047,
+  "std_reward": 0.18451721966266632,
+  "max_reward": 1.9169485569000244,
+  "min_reward": 1.2998096942901611,
+  "time_seconds": 64.579863,
+  "thresholds": [
+    1.419770985841751,
+    1.673893392086029,
+    1.7866028752177954
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.3309597969055176,
+      "std": 0.6646021008491516,
+      "max": 1.9169485569000244,
+      "min": 0.27698835730552673,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.5987393856048584,
+      "std": 0.5624010562896729,
+      "max": 1.9169485569000244,
+      "min": 0.12939563393592834,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.7619457244873047,
+      "std": 0.18451721966266632,
+      "max": 1.9169485569000244,
+      "min": 1.2998096942901611,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

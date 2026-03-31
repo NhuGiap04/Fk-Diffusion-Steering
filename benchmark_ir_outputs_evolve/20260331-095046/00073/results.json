@@ -1,0 +1,48 @@
+{
+  "prompt_index": 73,
+  "id": "001205-0101",
+  "prompt": "A realistic photo of a man with big ears",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.6954857110977173,
+  "best_reward": 1.8087319135665894,
+  "mean_reward": 1.6954857110977173,
+  "std_reward": 0.06986969709396362,
+  "max_reward": 1.8087319135665894,
+  "min_reward": 1.618125319480896,
+  "time_seconds": 60.512736,
+  "thresholds": [
+    1.3988535702228546,
+    1.5119610726833344,
+    1.7048224415630102
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.3225159645080566,
+      "std": 0.5712583065032959,
+      "max": 1.8087319135665894,
+      "min": 0.06368137896060944,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.4129055738449097,
+      "std": 0.7412634491920471,
+      "max": 1.8087319135665894,
+      "min": -0.5397272109985352,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.6954857110977173,
+      "std": 0.06986969709396362,
+      "max": 1.8087319135665894,
+      "min": 1.618125319480896,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

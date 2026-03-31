@@ -1,0 +1,48 @@
+{
+  "prompt_index": 62,
+  "id": "010795-0050",
+  "prompt": "a portrait oil painting of a smart man in his mid - 4 0 s, brown hair, blue eyes, salt and pepper beard, full beard, red skin, big eye brows, highly detailed, artistic, intricate",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.0,
+  "best_reward": 0.23113098740577698,
+  "mean_reward": -0.15815848112106323,
+  "std_reward": 0.3171229660511017,
+  "max_reward": 0.23113098740577698,
+  "min_reward": -0.7545192837715149,
+  "time_seconds": 99.337643,
+  "thresholds": [
+    0.033620234578847885,
+    0.04494922235608101,
+    0.04237733781337738
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.21052303910255432,
+      "std": 0.2515907883644104,
+      "max": 0.18931891024112701,
+      "min": -0.5573340654373169,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": -0.2786960303783417,
+      "std": 0.33636918663978577,
+      "max": 0.18931891024112701,
+      "min": -0.8509761095046997,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": -0.15815848112106323,
+      "std": 0.3171229660511017,
+      "max": 0.23113098740577698,
+      "min": -0.7545192837715149,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

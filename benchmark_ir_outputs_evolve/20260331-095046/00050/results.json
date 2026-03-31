@@ -1,0 +1,48 @@
+{
+  "prompt_index": 50,
+  "id": "008775-0090",
+  "prompt": "beautiful girl with curly hair, watercolor style, colorful, pastel colors, ultra detailed",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.9350154399871826,
+  "best_reward": 1.9724732637405396,
+  "mean_reward": 1.9350154399871826,
+  "std_reward": 0.047904159873723984,
+  "max_reward": 1.9724732637405396,
+  "min_reward": 1.8108859062194824,
+  "time_seconds": 74.92116,
+  "thresholds": [
+    1.8995634848251939,
+    1.929164690664038,
+    1.9414169029332697
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.8894091844558716,
+      "std": 0.07598783075809479,
+      "max": 1.9560519456863403,
+      "min": 1.7119733095169067,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.9271299839019775,
+      "std": 0.015226351097226143,
+      "max": 1.9560519456863403,
+      "min": 1.9110432863235474,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.9350154399871826,
+      "std": 0.047904159873723984,
+      "max": 1.9724732637405396,
+      "min": 1.8108859062194824,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

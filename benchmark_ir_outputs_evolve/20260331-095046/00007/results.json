@@ -1,0 +1,48 @@
+{
+  "prompt_index": 7,
+  "id": "005937-0167",
+  "prompt": "a painting of an ocean with clouds and birds, day, depth, field",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.158254623413086,
+  "best_reward": 1.251690149307251,
+  "mean_reward": 1.158254623413086,
+  "std_reward": 0.07654952257871628,
+  "max_reward": 1.251690149307251,
+  "min_reward": 1.0015478134155273,
+  "time_seconds": 84.839694,
+  "thresholds": [
+    1.112012111581862,
+    1.1355112735182047,
+    1.1684839837253094
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.1020640134811401,
+      "std": 0.07444474846124649,
+      "max": 1.2218557596206665,
+      "min": 1.0053168535232544,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.1274863481521606,
+      "std": 0.06005304306745529,
+      "max": 1.2218557596206665,
+      "min": 1.0209532976150513,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.158254623413086,
+      "std": 0.07654952257871628,
+      "max": 1.251690149307251,
+      "min": 1.0015478134155273,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "prompt_index": 14,
+  "id": "007029-0027",
+  "prompt": "a full body portrait of a good - lookiung girl wearing long loose gown, high, detail, cleary see face, by gaston bussiere, bayard wu, greg rutkowski, odd nerdrum, maxim verehin, dan dos santos, masterpiece, focus, cinematic lightning",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.340329647064209,
+  "best_reward": 1.6082490682601929,
+  "mean_reward": 1.340329647064209,
+  "std_reward": 0.19373203814029694,
+  "max_reward": 1.6082490682601929,
+  "min_reward": 1.028735637664795,
+  "time_seconds": 69.46877,
+  "thresholds": [
+    1.2486946545541286,
+    1.287696585059166,
+    1.3662181794643402
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.1979368925094604,
+      "std": 0.3798363208770752,
+      "max": 1.6082490682601929,
+      "min": 0.5079027414321899,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.2461116313934326,
+      "std": 0.3111933171749115,
+      "max": 1.6082490682601929,
+      "min": 0.7601934671401978,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.340329647064209,
+      "std": 0.19373203814029694,
+      "max": 1.6082490682601929,
+      "min": 1.028735637664795,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

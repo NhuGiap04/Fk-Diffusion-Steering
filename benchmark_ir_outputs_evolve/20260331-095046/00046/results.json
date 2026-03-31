@@ -1,0 +1,48 @@
+{
+  "prompt_index": 46,
+  "id": "008317-0143",
+  "prompt": "a beautiful cyborg mermaid with a long fish tail, the body has shimmering fish scales, submerged underwater, dark ocean, light filtering through, the body is entwined in seaweed and coral, highly detailed, hyper - realistic, futuristic",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.1410859823226929,
+  "best_reward": 1.4276231527328491,
+  "mean_reward": 1.1410859823226929,
+  "std_reward": 0.22554631531238556,
+  "max_reward": 1.4276231527328491,
+  "min_reward": 0.6879799962043762,
+  "time_seconds": 84.913733,
+  "thresholds": [
+    0.9114563651382923,
+    1.0360722318291664,
+    1.1712258774787188
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.875102162361145,
+      "std": 0.2720499634742737,
+      "max": 1.3089048862457275,
+      "min": 0.45421043038368225,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9893826842308044,
+      "std": 0.3493925631046295,
+      "max": 1.4276231527328491,
+      "min": 0.23477749526500702,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.1410859823226929,
+      "std": 0.22554631531238556,
+      "max": 1.4276231527328491,
+      "min": 0.6879799962043762,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

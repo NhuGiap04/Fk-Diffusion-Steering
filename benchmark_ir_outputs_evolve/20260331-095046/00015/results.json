@@ -1,0 +1,48 @@
+{
+  "prompt_index": 15,
+  "id": "007086-0024",
+  "prompt": "photograph of a futuristic cyberpunk flying car at night in the rain",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.8655216693878174,
+  "best_reward": 1.9254835844039917,
+  "mean_reward": 1.733830213546753,
+  "std_reward": 0.31954365968704224,
+  "max_reward": 1.9254835844039917,
+  "min_reward": 0.9015807509422302,
+  "time_seconds": 69.732099,
+  "thresholds": [
+    1.8119151256978512,
+    1.8714934550225735,
+    1.9082224890589714
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.78475022315979,
+      "std": 0.20328351855278015,
+      "max": 1.9254835844039917,
+      "min": 1.2752629518508911,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.8655216693878174,
+      "std": 0.04468875378370285,
+      "max": 1.9254835844039917,
+      "min": 1.7633540630340576,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.733830213546753,
+      "std": 0.31954365968704224,
+      "max": 1.9254835844039917,
+      "min": 0.9015807509422302,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

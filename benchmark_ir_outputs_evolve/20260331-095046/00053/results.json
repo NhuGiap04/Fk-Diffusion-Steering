@@ -1,0 +1,48 @@
+{
+  "prompt_index": 53,
+  "id": "009606-0136",
+  "prompt": "logo for a coffee chain",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5928971767425537,
+  "best_reward": 1.1928997039794922,
+  "mean_reward": 0.5928971767425537,
+  "std_reward": 0.5731411576271057,
+  "max_reward": 1.1928997039794922,
+  "min_reward": -0.5222452282905579,
+  "time_seconds": 69.462401,
+  "thresholds": [
+    0.3945922702550888,
+    0.4605298936367035,
+    0.6694863811135292
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.2853254973888397,
+      "std": 0.8176776766777039,
+      "max": 1.1928997039794922,
+      "min": -1.0109961032867432,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.3639230728149414,
+      "std": 0.7229392528533936,
+      "max": 1.1928997039794922,
+      "min": -0.8888946771621704,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5928971767425537,
+      "std": 0.5731411576271057,
+      "max": 1.1928997039794922,
+      "min": -0.5222452282905579,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

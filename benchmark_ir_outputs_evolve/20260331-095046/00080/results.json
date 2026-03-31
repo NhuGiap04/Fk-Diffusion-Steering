@@ -1,0 +1,48 @@
+{
+  "prompt_index": 80,
+  "id": "001720-0044",
+  "prompt": "field of light blue lotus flowers, minimalistic art, elegant",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.5120899677276611,
+  "best_reward": 1.784080147743225,
+  "mean_reward": 1.4723972082138062,
+  "std_reward": 0.3042362332344055,
+  "max_reward": 1.784080147743225,
+  "min_reward": 0.8541991114616394,
+  "time_seconds": 90.145527,
+  "thresholds": [
+    1.2865119315683842,
+    1.541777815669775,
+    1.552745245397091
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.24970281124115,
+      "std": 0.27545422315597534,
+      "max": 1.784080147743225,
+      "min": 0.8808865547180176,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.5120899677276611,
+      "std": 0.22216351330280304,
+      "max": 1.784080147743225,
+      "min": 1.1575905084609985,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.4723972082138062,
+      "std": 0.3042362332344055,
+      "max": 1.784080147743225,
+      "min": 0.8541991114616394,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

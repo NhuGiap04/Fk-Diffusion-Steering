@@ -1,0 +1,48 @@
+{
+  "prompt_index": 11,
+  "id": "007048-0049",
+  "prompt": "victorian lady, painting by rossetti, daniel gerhartz, alphonse mucha, bouguereau, detailed art",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5174920558929443,
+  "best_reward": 1.6976701021194458,
+  "mean_reward": 0.4962998330593109,
+  "std_reward": 0.5473964810371399,
+  "max_reward": 1.6976701021194458,
+  "min_reward": -0.09201614558696747,
+  "time_seconds": 79.670536,
+  "thresholds": [
+    0.5895841494202614,
+    0.5968125909566879,
+    0.5906409844756126
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.5174920558929443,
+      "std": 0.5394878387451172,
+      "max": 1.6976701021194458,
+      "min": -0.08132705092430115,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.48532795906066895,
+      "std": 0.5935805439949036,
+      "max": 1.6976701021194458,
+      "min": -0.22420410811901093,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.4962998330593109,
+      "std": 0.5473964810371399,
+      "max": 1.6976701021194458,
+      "min": -0.09201614558696747,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

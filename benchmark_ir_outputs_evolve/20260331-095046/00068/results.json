@@ -1,0 +1,48 @@
+{
+  "prompt_index": 68,
+  "id": "001161-0086",
+  "prompt": "a photograph of a mouldy and messy burger",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.119557499885559,
+  "best_reward": 1.4047139883041382,
+  "mean_reward": 1.119557499885559,
+  "std_reward": 0.20593465864658356,
+  "max_reward": 1.4047139883041382,
+  "min_reward": 0.866542637348175,
+  "time_seconds": 74.599676,
+  "thresholds": [
+    0.7932858914136887,
+    0.8898385465145111,
+    1.1470766756683588
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.7551231980323792,
+      "std": 0.2855834662914276,
+      "max": 1.1032243967056274,
+      "min": 0.3418288230895996,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8687703609466553,
+      "std": 0.1576598733663559,
+      "max": 1.1032243967056274,
+      "min": 0.5647517442703247,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.119557499885559,
+      "std": 0.20593465864658356,
+      "max": 1.4047139883041382,
+      "min": 0.866542637348175,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

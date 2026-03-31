@@ -1,0 +1,48 @@
+{
+  "prompt_index": 39,
+  "id": "007726-0050",
+  "prompt": "fancy treehouse mansion on top of a mountain overlooking a view of the valley magical realism detailed painting",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.7630540132522583,
+  "best_reward": 1.8043222427368164,
+  "mean_reward": 1.7630540132522583,
+  "std_reward": 0.026137061417102814,
+  "max_reward": 1.8043222427368164,
+  "min_reward": 1.7259929180145264,
+  "time_seconds": 90.122129,
+  "thresholds": [
+    1.6739835124462843,
+    1.7163132554851472,
+    1.7665467248298228
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.6642611026763916,
+      "std": 0.0727558508515358,
+      "max": 1.7718472480773926,
+      "min": 1.5473402738571167,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.7088360786437988,
+      "std": 0.05595406889915466,
+      "max": 1.7754977941513062,
+      "min": 1.6235599517822266,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.7630540132522583,
+      "std": 0.026137061417102814,
+      "max": 1.8043222427368164,
+      "min": 1.7259929180145264,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

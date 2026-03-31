@@ -1,0 +1,48 @@
+{
+  "prompt_index": 90,
+  "id": "004971-0071",
+  "prompt": "a sports car, motion blur",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.7360173463821411,
+  "best_reward": 1.8190659284591675,
+  "mean_reward": 1.7360173463821411,
+  "std_reward": 0.09582585841417313,
+  "max_reward": 1.8190659284591675,
+  "min_reward": 1.498661994934082,
+  "time_seconds": 74.499507,
+  "thresholds": [
+    1.7268154080957174,
+    1.7321558147668839,
+    1.748822615481913
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.716732382774353,
+      "std": 0.07545445114374161,
+      "max": 1.8190659284591675,
+      "min": 1.5938396453857422,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.716975450515747,
+      "std": 0.11359944939613342,
+      "max": 1.8190659284591675,
+      "min": 1.4418123960494995,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.7360173463821411,
+      "std": 0.09582585841417313,
+      "max": 1.8190659284591675,
+      "min": 1.498661994934082,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "prompt_index": 54,
+  "id": "009639-0195",
+  "prompt": "the sea, sunset, colorful, clear water, digital",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.3472796678543091,
+  "best_reward": 0.6243703961372375,
+  "mean_reward": 0.3472796678543091,
+  "std_reward": 0.20212653279304504,
+  "max_reward": 0.6243703961372375,
+  "min_reward": -0.11186598241329193,
+  "time_seconds": 79.500746,
+  "thresholds": [
+    0.1394205093383789,
+    0.22208040207624435,
+    0.37428996339440346
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.35651442408561707,
+      "std": 1.0433275699615479,
+      "max": 0.6243703961372375,
+      "min": -2.2807772159576416,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.17833669483661652,
+      "std": 0.32734793424606323,
+      "max": 0.6243703961372375,
+      "min": -0.4711351692676544,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.3472796678543091,
+      "std": 0.20212653279304504,
+      "max": 0.6243703961372375,
+      "min": -0.11186598241329193,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

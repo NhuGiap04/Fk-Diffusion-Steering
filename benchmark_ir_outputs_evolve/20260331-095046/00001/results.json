@@ -1,0 +1,48 @@
+{
+  "prompt_index": 1,
+  "id": "005784-0093",
+  "prompt": "desolate space, 4, octane, beautifully, epic, magical, cinematic, masterpiece",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5485544204711914,
+  "best_reward": 0.796032190322876,
+  "mean_reward": 0.5485544204711914,
+  "std_reward": 0.12148083001375198,
+  "max_reward": 0.796032190322876,
+  "min_reward": 0.3161286413669586,
+  "time_seconds": 79.406367,
+  "thresholds": [
+    0.39564927481114864,
+    0.4765465734526515,
+    0.5647879801690578
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.36584922671318054,
+      "std": 0.22300314903259277,
+      "max": 0.5778676867485046,
+      "min": -0.15741845965385437,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.4637802839279175,
+      "std": 0.09553416818380356,
+      "max": 0.5778676867485046,
+      "min": 0.31944751739501953,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5485544204711914,
+      "std": 0.12148083001375198,
+      "max": 0.796032190322876,
+      "min": 0.3161286413669586,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

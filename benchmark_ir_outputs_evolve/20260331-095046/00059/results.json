@@ -1,0 +1,48 @@
+{
+  "prompt_index": 59,
+  "id": "010366-0012",
+  "prompt": "a photo of a very fat green parrot",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.4865700602531433,
+  "best_reward": 0.6429209113121033,
+  "mean_reward": 0.4865700602531433,
+  "std_reward": 0.11732324212789536,
+  "max_reward": 0.6429209113121033,
+  "min_reward": 0.24422957003116608,
+  "time_seconds": 79.802771,
+  "thresholds": [
+    0.06261206418275833,
+    0.4271928742527962,
+    0.5022480376064777
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.020653054118156433,
+      "std": 0.3139925003051758,
+      "max": 0.5287987589836121,
+      "min": -0.40052899718284607,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.3984494209289551,
+      "std": 0.21509630978107452,
+      "max": 0.6429209113121033,
+      "min": 0.0649951621890068,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.4865700602531433,
+      "std": 0.11732324212789536,
+      "max": 0.6429209113121033,
+      "min": 0.24422957003116608,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

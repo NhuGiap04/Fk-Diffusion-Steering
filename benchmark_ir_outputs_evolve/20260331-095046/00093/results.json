@@ -1,0 +1,48 @@
+{
+  "prompt_index": 93,
+  "id": "003940-0078",
+  "prompt": "the grand hall of the sacred library oil painting by james gurney",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5300708413124084,
+  "best_reward": 0.7284075021743774,
+  "mean_reward": 0.5300708413124084,
+  "std_reward": 0.13991324603557587,
+  "max_reward": 0.7284075021743774,
+  "min_reward": 0.23705831170082092,
+  "time_seconds": 84.73159,
+  "thresholds": [
+    0.45108272042125463,
+    0.5005082413554192,
+    0.5487675350159407
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.43760377168655396,
+      "std": 0.10086721926927567,
+      "max": 0.6268296241760254,
+      "min": 0.2980579137802124,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.47962939739227295,
+      "std": 0.1562429666519165,
+      "max": 0.7284075021743774,
+      "min": 0.22957074642181396,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5300708413124084,
+      "std": 0.13991324603557587,
+      "max": 0.7284075021743774,
+      "min": 0.23705831170082092,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

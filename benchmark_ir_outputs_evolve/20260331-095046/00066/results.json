@@ -1,0 +1,48 @@
+{
+  "prompt_index": 66,
+  "id": "010984-0022",
+  "prompt": "video game, art",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.129204660654068,
+  "best_reward": 0.7199637293815613,
+  "mean_reward": 0.129204660654068,
+  "std_reward": 0.413722962141037,
+  "max_reward": 0.7199637293815613,
+  "min_reward": -0.6443966627120972,
+  "time_seconds": 79.916931,
+  "thresholds": [
+    0.05976123921573162,
+    0.17214203998446465,
+    0.18449071794748306
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.01492430828511715,
+      "std": 0.3355288505554199,
+      "max": 0.7199637293815613,
+      "min": -0.49135249853134155,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.12911361455917358,
+      "std": 0.32199522852897644,
+      "max": 0.7199637293815613,
+      "min": -0.4220334589481354,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.129204660654068,
+      "std": 0.413722962141037,
+      "max": 0.7199637293815613,
+      "min": -0.6443966627120972,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

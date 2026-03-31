@@ -1,0 +1,48 @@
+{
+  "prompt_index": 44,
+  "id": "008173-0073",
+  "prompt": "small red wooden cottage by the lake, lanterns on the porch, smoke coming out of the chimney, dusk, birch trees, tranquility, two swans swimming on the lake, a wooden rowing boat, cumulus clouds, by charlie bowater, by greg rutkowski",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.029430337250232697,
+  "best_reward": 0.6022486686706543,
+  "mean_reward": 0.011745154857635498,
+  "std_reward": 0.6203264594078064,
+  "max_reward": 0.6022486686706543,
+  "min_reward": -0.9754765033721924,
+  "time_seconds": 89.636381,
+  "thresholds": [
+    0.09888792037963867,
+    0.09522229433059692,
+    0.11232494562864304
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.46732258796691895,
+      "std": 0.7400094270706177,
+      "max": 0.5625379085540771,
+      "min": -1.9010655879974365,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.029430337250232697,
+      "std": 0.49234193563461304,
+      "max": 0.6022486686706543,
+      "min": -0.7565836906433105,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.011745154857635498,
+      "std": 0.6203264594078064,
+      "max": 0.6022486686706543,
+      "min": -0.9754765033721924,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

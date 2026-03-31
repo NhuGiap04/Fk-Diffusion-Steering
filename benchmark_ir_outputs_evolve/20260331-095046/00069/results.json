@@ -1,0 +1,48 @@
+{
+  "prompt_index": 69,
+  "id": "001173-0078",
+  "prompt": "antique marble statue of gigachad",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.2371928691864014,
+  "best_reward": 1.3915475606918335,
+  "mean_reward": 1.2371928691864014,
+  "std_reward": 0.19206100702285767,
+  "max_reward": 1.3915475606918335,
+  "min_reward": 0.8650982975959778,
+  "time_seconds": 74.670232,
+  "thresholds": [
+    1.1845705434679985,
+    1.2434317246079445,
+    1.2628581020981073
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.159913420677185,
+      "std": 0.1845170110464096,
+      "max": 1.3726555109024048,
+      "min": 0.8607698678970337,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.2174558639526367,
+      "std": 0.19438554346561432,
+      "max": 1.3915475606918335,
+      "min": 0.8769659399986267,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.2371928691864014,
+      "std": 0.19206100702285767,
+      "max": 1.3915475606918335,
+      "min": 0.8650982975959778,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

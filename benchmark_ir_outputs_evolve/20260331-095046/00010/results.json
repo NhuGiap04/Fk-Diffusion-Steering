@@ -1,0 +1,48 @@
+{
+  "prompt_index": 10,
+  "id": "005895-0048",
+  "prompt": "symmetry!! a hybrid medieval exquisite complex and beautiful double hatchet in the fog of magic light, painting, illustration, art by artgerm and greg rutkowski and alphonse mucha",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5111411213874817,
+  "best_reward": 1.2762011289596558,
+  "mean_reward": 0.5111411213874817,
+  "std_reward": 0.43319329619407654,
+  "max_reward": 1.2762011289596558,
+  "min_reward": -0.34379905462265015,
+  "time_seconds": 89.646082,
+  "thresholds": [
+    0.23706161230802536,
+    0.48185446113348007,
+    0.5690290108323097
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.1684054285287857,
+      "std": 0.5137758255004883,
+      "max": 1.2762011289596558,
+      "min": -0.45925670862197876,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.42243272066116333,
+      "std": 0.4446715712547302,
+      "max": 1.2762011289596558,
+      "min": -0.1483735740184784,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5111411213874817,
+      "std": 0.43319329619407654,
+      "max": 1.2762011289596558,
+      "min": -0.34379905462265015,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

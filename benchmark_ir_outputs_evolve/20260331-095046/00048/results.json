@@ -1,0 +1,48 @@
+{
+  "prompt_index": 48,
+  "id": "008569-0060",
+  "prompt": "cute cats in Conceptual art style",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.7416919469833374,
+  "best_reward": 1.38336980342865,
+  "mean_reward": 0.7416919469833374,
+  "std_reward": 0.4912392497062683,
+  "max_reward": 1.38336980342865,
+  "min_reward": -0.30554965138435364,
+  "time_seconds": 94.807021,
+  "thresholds": [
+    0.46592212468385696,
+    0.515082448720932,
+    0.8073365539312363
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.39148107171058655,
+      "std": 0.5570657849311829,
+      "max": 1.38336980342865,
+      "min": -0.3213134706020355,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.44367313385009766,
+      "std": 0.5343783497810364,
+      "max": 1.38336980342865,
+      "min": -0.27234047651290894,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.7416919469833374,
+      "std": 0.4912392497062683,
+      "max": 1.38336980342865,
+      "min": -0.30554965138435364,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

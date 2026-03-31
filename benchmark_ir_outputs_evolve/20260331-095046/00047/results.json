@@ -1,0 +1,48 @@
+{
+  "prompt_index": 47,
+  "id": "008265-0060",
+  "prompt": "a coin bag item from a videogame ui",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.46766695380210876,
+  "best_reward": 1.296370029449463,
+  "mean_reward": 0.46766695380210876,
+  "std_reward": 0.7933093905448914,
+  "max_reward": 1.296370029449463,
+  "min_reward": -0.6907232403755188,
+  "time_seconds": 94.683212,
+  "thresholds": [
+    0.10177955031394958,
+    0.30139293521642685,
+    0.5736773833632469
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.08847688138484955,
+      "std": 0.761648416519165,
+      "max": 1.2956804037094116,
+      "min": -0.9858687520027161,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.20051032304763794,
+      "std": 0.7549363374710083,
+      "max": 1.2956804037094116,
+      "min": -0.6141330599784851,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.46766695380210876,
+      "std": 0.7933093905448914,
+      "max": 1.296370029449463,
+      "min": -0.6907232403755188,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

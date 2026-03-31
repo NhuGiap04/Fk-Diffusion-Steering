@@ -1,0 +1,48 @@
+{
+  "prompt_index": 22,
+  "id": "007129-0041",
+  "prompt": "extremely detailed stunning beautiful futuristic smooth curvilinear museum interior, colorful, hyper, real",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.1119052171707153,
+  "best_reward": 1.278707504272461,
+  "mean_reward": 1.1119052171707153,
+  "std_reward": 0.1694367676973343,
+  "max_reward": 1.278707504272461,
+  "min_reward": 0.7213872075080872,
+  "time_seconds": 79.687744,
+  "thresholds": [
+    0.9762006513774395,
+    1.0201057381927967,
+    1.1345471572130919
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.9338065385818481,
+      "std": 0.31724849343299866,
+      "max": 1.278707504272461,
+      "min": 0.30450406670570374,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9769425392150879,
+      "std": 0.3230037987232208,
+      "max": 1.278707504272461,
+      "min": 0.21948103606700897,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.1119052171707153,
+      "std": 0.1694367676973343,
+      "max": 1.278707504272461,
+      "min": 0.7213872075080872,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

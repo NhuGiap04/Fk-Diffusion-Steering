@@ -1,0 +1,48 @@
+{
+  "prompt_index": 45,
+  "id": "008222-0061",
+  "prompt": "frosted glass sphere sitting on a wooden table, high, complex",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.840859055519104,
+  "best_reward": 1.9102343320846558,
+  "mean_reward": 1.8316965103149414,
+  "std_reward": 0.046123605221509933,
+  "max_reward": 1.9102343320846558,
+  "min_reward": 1.764970302581787,
+  "time_seconds": 74.52007,
+  "thresholds": [
+    1.8242586962878704,
+    1.8462491719983518,
+    1.8470225813798606
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.8161152601242065,
+      "std": 0.06093989685177803,
+      "max": 1.9102343320846558,
+      "min": 1.72434401512146,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.840859055519104,
+      "std": 0.04033593833446503,
+      "max": 1.9102343320846558,
+      "min": 1.7668260335922241,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.8316965103149414,
+      "std": 0.046123605221509933,
+      "max": 1.9102343320846558,
+      "min": 1.764970302581787,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

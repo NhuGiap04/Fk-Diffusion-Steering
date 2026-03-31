@@ -1,0 +1,48 @@
+{
+  "prompt_index": 95,
+  "id": "002870-0080",
+  "prompt": "a modern style living room in a big mansion next to a giant window overlooking the pool",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.8551356196403503,
+  "best_reward": 1.0482702255249023,
+  "mean_reward": 0.8551356196403503,
+  "std_reward": 0.15672896802425385,
+  "max_reward": 1.0482702255249023,
+  "min_reward": 0.5388005971908569,
+  "time_seconds": 69.489578,
+  "thresholds": [
+    0.6086242198944092,
+    0.7380410693585873,
+    0.8760794084519148
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.5241795778274536,
+      "std": 0.6319258213043213,
+      "max": 1.0482702255249023,
+      "min": -1.0174833536148071,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.6797993779182434,
+      "std": 0.435840904712677,
+      "max": 1.0482702255249023,
+      "min": -0.31445491313934326,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8551356196403503,
+      "std": 0.15672896802425385,
+      "max": 1.0482702255249023,
+      "min": 0.5388005971908569,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

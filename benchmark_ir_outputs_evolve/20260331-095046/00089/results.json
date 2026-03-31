@@ -1,0 +1,48 @@
+{
+  "prompt_index": 89,
+  "id": "001737-0018",
+  "prompt": "a car chilling on the beach, sunset",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.769070029258728,
+  "best_reward": 1.848836064338684,
+  "mean_reward": 1.7205932140350342,
+  "std_reward": 0.094078928232193,
+  "max_reward": 1.848836064338684,
+  "min_reward": 1.53440523147583,
+  "time_seconds": 74.936343,
+  "thresholds": [
+    1.7124743424355984,
+    1.7748793717473745,
+    1.781641854904592
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.692245364189148,
+      "std": 0.1513798087835312,
+      "max": 1.848836064338684,
+      "min": 1.3783282041549683,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.769070029258728,
+      "std": 0.04347313940525055,
+      "max": 1.848836064338684,
+      "min": 1.7033153772354126,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.7205932140350342,
+      "std": 0.094078928232193,
+      "max": 1.848836064338684,
+      "min": 1.53440523147583,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

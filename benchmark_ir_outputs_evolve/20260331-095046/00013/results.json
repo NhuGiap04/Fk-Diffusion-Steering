@@ -1,0 +1,48 @@
+{
+  "prompt_index": 13,
+  "id": "007109-0000",
+  "prompt": "cartoon character in a style of adventure time cartoon",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5389072895050049,
+  "best_reward": 0.8372475504875183,
+  "mean_reward": 0.5389072895050049,
+  "std_reward": 0.2016860842704773,
+  "max_reward": 0.8372475504875183,
+  "min_reward": 0.3002872169017792,
+  "time_seconds": 74.592304,
+  "thresholds": [
+    0.21502689272165298,
+    0.3516438789665699,
+    0.5658587273210287
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.1742367446422577,
+      "std": 0.3052455186843872,
+      "max": 0.6154634356498718,
+      "min": -0.3743927478790283,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.3087875545024872,
+      "std": 0.32070738077163696,
+      "max": 0.8372475504875183,
+      "min": -0.21140189468860626,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5389072895050049,
+      "std": 0.2016860842704773,
+      "max": 0.8372475504875183,
+      "min": 0.3002872169017792,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

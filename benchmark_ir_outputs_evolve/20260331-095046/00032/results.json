@@ -1,0 +1,48 @@
+{
+  "prompt_index": 32,
+  "id": "007249-0011",
+  "prompt": "futuristic spaceship escaping event horizon of black hole, by rossdraws, by marc simonetti, by matt rutkowski, dystopian lost in space, nebula, supernova, exploding galaxy, micro detail, fantasy",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.0582387447357178,
+  "best_reward": 1.7002019882202148,
+  "mean_reward": 1.0582387447357178,
+  "std_reward": 0.7125396728515625,
+  "max_reward": 1.7002019882202148,
+  "min_reward": -0.48359912633895874,
+  "time_seconds": 74.500178,
+  "thresholds": [
+    0.7986375540494919,
+    1.065156303346157,
+    1.1534558609127998
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.6680980920791626,
+      "std": 0.9768679141998291,
+      "max": 1.7002019882202148,
+      "min": -0.9564780592918396,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.958500325679779,
+      "std": 0.7981402277946472,
+      "max": 1.7002019882202148,
+      "min": -0.6306490898132324,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.0582387447357178,
+      "std": 0.7125396728515625,
+      "max": 1.7002019882202148,
+      "min": -0.48359912633895874,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

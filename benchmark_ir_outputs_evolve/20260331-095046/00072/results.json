@@ -1,0 +1,48 @@
+{
+  "prompt_index": 72,
+  "id": "001227-0027",
+  "prompt": "footage of an astronaut in a tropical beach",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.8961623907089233,
+  "best_reward": 1.9335105419158936,
+  "mean_reward": 1.8961623907089233,
+  "std_reward": 0.033060334622859955,
+  "max_reward": 1.9335105419158936,
+  "min_reward": 1.8173846006393433,
+  "time_seconds": 65.623591,
+  "thresholds": [
+    1.7613990753889084,
+    1.8732581650838256,
+    1.900580263696611
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.6979314088821411,
+      "std": 0.474948525428772,
+      "max": 1.9162710905075073,
+      "min": 0.4432876706123352,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.868602991104126,
+      "std": 0.03483613207936287,
+      "max": 1.9162710905075073,
+      "min": 1.8086599111557007,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.8961623907089233,
+      "std": 0.033060334622859955,
+      "max": 1.9335105419158936,
+      "min": 1.8173846006393433,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

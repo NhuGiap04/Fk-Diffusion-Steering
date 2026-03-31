@@ -1,0 +1,48 @@
+{
+  "prompt_index": 58,
+  "id": "010490-0075",
+  "prompt": "portrait of a cute cyberpunk cat, realistic, professional",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.600033164024353,
+  "best_reward": 1.7226307392120361,
+  "mean_reward": 1.600033164024353,
+  "std_reward": 0.104939766228199,
+  "max_reward": 1.7226307392120361,
+  "min_reward": 1.4139901399612427,
+  "time_seconds": 84.930762,
+  "thresholds": [
+    1.4604002740234137,
+    1.5777542926371098,
+    1.6140563301742077
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.44693922996521,
+      "std": 0.10073323547840118,
+      "max": 1.583114504814148,
+      "min": 1.2252345085144043,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.5693166255950928,
+      "std": 0.06314171850681305,
+      "max": 1.68242609500885,
+      "min": 1.4909827709197998,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.600033164024353,
+      "std": 0.104939766228199,
+      "max": 1.7226307392120361,
+      "min": 1.4139901399612427,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

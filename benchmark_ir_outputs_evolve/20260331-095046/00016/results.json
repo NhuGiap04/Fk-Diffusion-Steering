@@ -1,0 +1,48 @@
+{
+  "prompt_index": 16,
+  "id": "007109-0002",
+  "prompt": "Portrait of an old sea captain, male, detailed face, fantasy, highly detailed, cinematic, art painting by greg rutkowski",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.5090388059616089,
+  "best_reward": 1.652815580368042,
+  "mean_reward": 1.5090388059616089,
+  "std_reward": 0.1233496218919754,
+  "max_reward": 1.652815580368042,
+  "min_reward": 1.2250843048095703,
+  "time_seconds": 84.386941,
+  "thresholds": [
+    1.198260523378849,
+    1.4605158995836973,
+    1.5255220923572779
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.1663709878921509,
+      "std": 0.2386394441127777,
+      "max": 1.6268000602722168,
+      "min": 0.8981360793113708,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.4405808448791504,
+      "std": 0.14918029308319092,
+      "max": 1.6268000602722168,
+      "min": 1.1057063341140747,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.5090388059616089,
+      "std": 0.1233496218919754,
+      "max": 1.652815580368042,
+      "min": 1.2250843048095703,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

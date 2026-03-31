@@ -1,0 +1,48 @@
+{
+  "prompt_index": 24,
+  "id": "007178-0111",
+  "prompt": "alien landscape with futuristic portal to another alien planet, astronaut stepping through the portal",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.6896017789840698,
+  "best_reward": 1.73311185836792,
+  "mean_reward": 1.6896017789840698,
+  "std_reward": 0.04476811736822128,
+  "max_reward": 1.73311185836792,
+  "min_reward": 1.576828122138977,
+  "time_seconds": 79.832798,
+  "thresholds": [
+    1.3667078167200089,
+    1.5746470019221306,
+    1.6955841705203056
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.321747064590454,
+      "std": 0.33645546436309814,
+      "max": 1.73311185836792,
+      "min": 0.6129843592643738,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.548510193824768,
+      "std": 0.19558997452259064,
+      "max": 1.73311185836792,
+      "min": 1.2205100059509277,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.6896017789840698,
+      "std": 0.04476811736822128,
+      "max": 1.73311185836792,
+      "min": 1.576828122138977,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

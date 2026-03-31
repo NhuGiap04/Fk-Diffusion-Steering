@@ -1,0 +1,48 @@
+{
+  "prompt_index": 71,
+  "id": "001230-0030",
+  "prompt": "beautiful rainbow clouds, oil painting",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.057035207748413,
+  "best_reward": 1.2594969272613525,
+  "mean_reward": 1.0149959325790405,
+  "std_reward": 0.2632538080215454,
+  "max_reward": 1.2594969272613525,
+  "min_reward": 0.516370952129364,
+  "time_seconds": 84.775759,
+  "thresholds": [
+    1.017928371205926,
+    1.078366482630372,
+    1.0922139808535576
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.9976913332939148,
+      "std": 0.15144012868404388,
+      "max": 1.2486340999603271,
+      "min": 0.7834502458572388,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.057035207748413,
+      "std": 0.15962864458560944,
+      "max": 1.2486340999603271,
+      "min": 0.7629187107086182,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.0149959325790405,
+      "std": 0.2632538080215454,
+      "max": 1.2594969272613525,
+      "min": 0.516370952129364,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

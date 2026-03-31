@@ -1,0 +1,48 @@
+{
+  "prompt_index": 82,
+  "id": "000246-0117",
+  "prompt": "surface of an alien planet",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.06590587645769119,
+  "best_reward": 0.3975834548473358,
+  "mean_reward": 0.06590587645769119,
+  "std_reward": 0.25331830978393555,
+  "max_reward": 0.3975834548473358,
+  "min_reward": -0.34649893641471863,
+  "time_seconds": 84.968234,
+  "thresholds": [
+    0.057876355946063995,
+    0.046171460300683975,
+    0.09975695982575417
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.20304980874061584,
+      "std": 0.4331069886684418,
+      "max": 0.30669546127319336,
+      "min": -0.8858148455619812,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": -0.02837337926030159,
+      "std": 0.34551557898521423,
+      "max": 0.3975834548473358,
+      "min": -0.6695935130119324,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.06590587645769119,
+      "std": 0.25331830978393555,
+      "max": 0.3975834548473358,
+      "min": -0.34649893641471863,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "prompt_index": 6,
+  "id": "005895-0035",
+  "prompt": "close up photo of anthropomorphic fox animal dressed in white shirt and khaki cargo pants, fox animal, glasses",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.8866465091705322,
+  "best_reward": 1.9640144109725952,
+  "mean_reward": 1.8366433382034302,
+  "std_reward": 0.17779748141765594,
+  "max_reward": 1.9640144109725952,
+  "min_reward": 1.3925034999847412,
+  "time_seconds": 69.570241,
+  "thresholds": [
+    1.8240110762417316,
+    1.8965814430266619,
+    1.9104056973010302
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.790233850479126,
+      "std": 0.25276562571525574,
+      "max": 1.9640144109725952,
+      "min": 1.1462795734405518,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.8866465091705322,
+      "std": 0.07434623688459396,
+      "max": 1.9640144109725952,
+      "min": 1.7128942012786865,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.8366433382034302,
+      "std": 0.17779748141765594,
+      "max": 1.9640144109725952,
+      "min": 1.3925034999847412,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

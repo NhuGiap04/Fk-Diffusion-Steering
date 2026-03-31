@@ -1,0 +1,48 @@
+{
+  "prompt_index": 36,
+  "id": "007202-0104",
+  "prompt": "futuristic city street where it is raining, a row of shops including a mcdonalds are all abandoned and vandalised windows are broken, dark lighting with storm clouds",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.1576154232025146,
+  "best_reward": 1.608734369277954,
+  "mean_reward": 0.9498628377914429,
+  "std_reward": 0.39849281311035156,
+  "max_reward": 1.608734369277954,
+  "min_reward": 0.5306587219238281,
+  "time_seconds": 79.734559,
+  "thresholds": [
+    1.005898479372263,
+    1.192783284932375,
+    1.2108662649989128
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.9591599702835083,
+      "std": 0.34975895285606384,
+      "max": 1.608734369277954,
+      "min": 0.3319258987903595,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.1576154232025146,
+      "std": 0.2631721794605255,
+      "max": 1.608734369277954,
+      "min": 0.6742373704910278,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9498628377914429,
+      "std": 0.39849281311035156,
+      "max": 1.608734369277954,
+      "min": 0.5306587219238281,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

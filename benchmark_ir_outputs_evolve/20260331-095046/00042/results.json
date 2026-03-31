@@ -1,0 +1,48 @@
+{
+  "prompt_index": 42,
+  "id": "008247-0049",
+  "prompt": "botanical illustrations of many multicolored flowers",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.1462138891220093,
+  "best_reward": 1.603357195854187,
+  "mean_reward": 1.1462138891220093,
+  "std_reward": 0.2831006348133087,
+  "max_reward": 1.603357195854187,
+  "min_reward": 0.5827912092208862,
+  "time_seconds": 94.762475,
+  "thresholds": [
+    1.1245293207466602,
+    1.1286414749920368,
+    1.1840448006987572
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.0908632278442383,
+      "std": 0.2519339919090271,
+      "max": 1.603357195854187,
+      "min": 0.8223758339881897,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.0897784233093262,
+      "std": 0.28270652890205383,
+      "max": 1.603357195854187,
+      "min": 0.6266094446182251,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.1462138891220093,
+      "std": 0.2831006348133087,
+      "max": 1.603357195854187,
+      "min": 0.5827912092208862,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

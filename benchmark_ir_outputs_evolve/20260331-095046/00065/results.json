@@ -1,0 +1,48 @@
+{
+  "prompt_index": 65,
+  "id": "011041-0080",
+  "prompt": "cinematic movie scene, beautiful Product shot film still of a Syd Mead futuristic modern sleek automobile speeding down a wet street at night in cyperpunk city, motion, hard surface modeling, soft, style of Stanley Kubrick cinematography",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.5805208683013916,
+  "best_reward": 1.7019706964492798,
+  "mean_reward": 1.5805208683013916,
+  "std_reward": 0.07010216265916824,
+  "max_reward": 1.7019706964492798,
+  "min_reward": 1.4466302394866943,
+  "time_seconds": 84.912053,
+  "thresholds": [
+    1.4798320019617677,
+    1.5434979479759932,
+    1.5898886639624834
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.471602439880371,
+      "std": 0.06158440560102463,
+      "max": 1.5507386922836304,
+      "min": 1.344986081123352,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.528221607208252,
+      "std": 0.11431766301393509,
+      "max": 1.7019706964492798,
+      "min": 1.285963773727417,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.5805208683013916,
+      "std": 0.07010216265916824,
+      "max": 1.7019706964492798,
+      "min": 1.4466302394866943,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

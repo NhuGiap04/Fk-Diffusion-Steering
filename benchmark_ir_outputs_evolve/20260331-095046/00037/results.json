@@ -1,0 +1,48 @@
+{
+  "prompt_index": 37,
+  "id": "007258-0005",
+  "prompt": "desert, art by joseph, leyendecker, peter mohrbacher, ivan aivazovsky, ruan jia, reza afshar, marc simonetti",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.0543991327285767,
+  "best_reward": 1.2878458499908447,
+  "mean_reward": 1.0543991327285767,
+  "std_reward": 0.1247510313987732,
+  "max_reward": 1.2878458499908447,
+  "min_reward": 0.8660783171653748,
+  "time_seconds": 79.658583,
+  "thresholds": [
+    0.9054943397641182,
+    1.0065391883254051,
+    1.0710696913301945
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.8767671585083008,
+      "std": 0.2149745374917984,
+      "max": 1.0882160663604736,
+      "min": 0.4091587960720062,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9826133847236633,
+      "std": 0.17904432117938995,
+      "max": 1.2878458499908447,
+      "min": 0.6823651194572449,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.0543991327285767,
+      "std": 0.1247510313987732,
+      "max": 1.2878458499908447,
+      "min": 0.8660783171653748,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "prompt_index": 35,
+  "id": "007187-0044",
+  "prompt": "an underwater rollercoaster, cinematic, dramatic, -",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.907983660697937,
+  "best_reward": 1.536263346672058,
+  "mean_reward": 0.907983660697937,
+  "std_reward": 0.38330215215682983,
+  "max_reward": 1.536263346672058,
+  "min_reward": 0.2727667987346649,
+  "time_seconds": 79.632035,
+  "thresholds": [
+    0.4524347484111786,
+    0.7828877419233322,
+    0.9592045657336712
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.32331693172454834,
+      "std": 0.966229259967804,
+      "max": 1.2363998889923096,
+      "min": -1.997188687324524,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.7306972742080688,
+      "std": 0.3905576765537262,
+      "max": 1.2363998889923096,
+      "min": 0.06283240765333176,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.907983660697937,
+      "std": 0.38330215215682983,
+      "max": 1.536263346672058,
+      "min": 0.2727667987346649,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

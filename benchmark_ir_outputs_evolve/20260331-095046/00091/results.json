@@ -1,0 +1,48 @@
+{
+  "prompt_index": 91,
+  "id": "005351-0071",
+  "prompt": "vintage classic motorcycle, moebius and ralph mcquarrie style, retro sci - fi, pulp sci - fi, technical",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.2913520336151123,
+  "best_reward": 1.5887309312820435,
+  "mean_reward": 1.262473225593567,
+  "std_reward": 0.2237916737794876,
+  "max_reward": 1.5887309312820435,
+  "min_reward": 0.8696224689483643,
+  "time_seconds": 74.564337,
+  "thresholds": [
+    1.2569488286972046,
+    1.3067348469048738,
+    1.3212574552744627
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.231824517250061,
+      "std": 0.18801313638687134,
+      "max": 1.428678035736084,
+      "min": 0.8155529499053955,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.2913520336151123,
+      "std": 0.11511443555355072,
+      "max": 1.428678035736084,
+      "min": 1.0335148572921753,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.262473225593567,
+      "std": 0.2237916737794876,
+      "max": 1.5887309312820435,
+      "min": 0.8696224689483643,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

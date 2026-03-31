@@ -1,0 +1,48 @@
+{
+  "prompt_index": 67,
+  "id": "001251-0073",
+  "prompt": "really cool sketchy logo, edgy aesthetic, trending",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.08609867841005325,
+  "best_reward": 0.26393142342567444,
+  "mean_reward": 0.08609867841005325,
+  "std_reward": 0.2963484823703766,
+  "max_reward": 0.26393142342567444,
+  "min_reward": -0.6848302483558655,
+  "time_seconds": 79.570984,
+  "thresholds": [
+    0.06384202837944031,
+    0.05305355042219162,
+    0.12569990754127502
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.41881063580513,
+      "std": 0.4777500033378601,
+      "max": 0.2217283695936203,
+      "min": -1.304170846939087,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": -0.020725853741168976,
+      "std": 0.39701640605926514,
+      "max": 0.26393142342567444,
+      "min": -0.7574660778045654,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.08609867841005325,
+      "std": 0.2963484823703766,
+      "max": 0.26393142342567444,
+      "min": -0.6848302483558655,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

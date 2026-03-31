@@ -1,0 +1,48 @@
+{
+  "prompt_index": 2,
+  "id": "005848-0000",
+  "prompt": "a beautiful painting of the jungle in the morning with lots of smoke, fantasy art, matte painting",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.9578670263290405,
+  "best_reward": 1.1509867906570435,
+  "mean_reward": 0.9152157306671143,
+  "std_reward": 0.20644471049308777,
+  "max_reward": 1.1509867906570435,
+  "min_reward": 0.4494260847568512,
+  "time_seconds": 84.932881,
+  "thresholds": [
+    0.9414732735604048,
+    0.9739453662186861,
+    0.9854543618857861
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.9252546429634094,
+      "std": 0.12136911600828171,
+      "max": 1.1509867906570435,
+      "min": 0.7408091425895691,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9578670263290405,
+      "std": 0.12031927704811096,
+      "max": 1.1509867906570435,
+      "min": 0.8029611706733704,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.9152157306671143,
+      "std": 0.20644471049308777,
+      "max": 1.1509867906570435,
+      "min": 0.4494260847568512,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

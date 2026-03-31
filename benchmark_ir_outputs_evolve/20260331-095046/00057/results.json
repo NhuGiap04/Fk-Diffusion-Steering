@@ -1,0 +1,48 @@
+{
+  "prompt_index": 57,
+  "id": "010482-0092",
+  "prompt": "a retro arcade game",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.8060980439186096,
+  "best_reward": 1.2080602645874023,
+  "mean_reward": 0.7542978525161743,
+  "std_reward": 0.4091945290565491,
+  "max_reward": 1.2080602645874023,
+  "min_reward": -0.10644422471523285,
+  "time_seconds": 69.635908,
+  "thresholds": [
+    0.7311283834278584,
+    0.8509050980210304,
+    0.8607789613306522
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.6749334931373596,
+      "std": 0.42052406072616577,
+      "max": 1.2080602645874023,
+      "min": -0.21268627047538757,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8060980439186096,
+      "std": 0.3353053033351898,
+      "max": 1.2080602645874023,
+      "min": 0.05221175774931908,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.7542978525161743,
+      "std": 0.4091945290565491,
+      "max": 1.2080602645874023,
+      "min": -0.10644422471523285,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

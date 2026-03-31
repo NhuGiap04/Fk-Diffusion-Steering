@@ -1,0 +1,30 @@
+{
+  "prompt_index": 33,
+  "id": "007171-0104",
+  "prompt": "a bag of frozen breaded scampi with maerl spilling out",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": -0.055723823606967926,
+  "mean_reward": -0.7317988872528076,
+  "std_reward": 0.4883659780025482,
+  "max_reward": -0.055723823606967926,
+  "min_reward": -1.6561501026153564,
+  "time_seconds": 39.045513,
+  "thresholds": [
+    0.06526064872741699
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.7317988872528076,
+      "std": 0.4883659780025482,
+      "max": -0.055723823606967926,
+      "min": -1.6561501026153564,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "prompt_index": 77,
+  "id": "005633-0081",
+  "prompt": "February 2022",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": -0.2251332849264145,
+  "mean_reward": -1.3005385398864746,
+  "std_reward": 0.5662816166877747,
+  "max_reward": -0.2251332849264145,
+  "min_reward": -2.234718084335327,
+  "time_seconds": 39.13084,
+  "thresholds": [
+    0.07567256689071655
+  ],
+  "loop_stats": [
+    {
+      "mean": -1.3005385398864746,
+      "std": 0.5662816166877747,
+      "max": -0.2251332849264145,
+      "min": -2.234718084335327,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

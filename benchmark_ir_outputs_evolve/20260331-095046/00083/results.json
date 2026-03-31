@@ -1,0 +1,48 @@
+{
+  "prompt_index": 83,
+  "id": "001369-0084",
+  "prompt": "greek or roman sculpture in marble of a philosopher holding a skull, in a museum background, hyperrealistic photograph in the style of bernini, golden hour",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.175959587097168,
+  "best_reward": 1.375714898109436,
+  "mean_reward": 1.175959587097168,
+  "std_reward": 0.17380370199680328,
+  "max_reward": 1.375714898109436,
+  "min_reward": 0.801147997379303,
+  "time_seconds": 79.892427,
+  "thresholds": [
+    0.8952757865190506,
+    1.1183020118623972,
+    1.1991850845515728
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.8338188529014587,
+      "std": 0.4599015712738037,
+      "max": 1.2750663757324219,
+      "min": -0.2916397452354431,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.095992088317871,
+      "std": 0.1669521927833557,
+      "max": 1.375714898109436,
+      "min": 0.9196892976760864,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.175959587097168,
+      "std": 0.17380370199680328,
+      "max": 1.375714898109436,
+      "min": 0.801147997379303,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

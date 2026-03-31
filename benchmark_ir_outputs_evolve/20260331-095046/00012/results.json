@@ -1,0 +1,48 @@
+{
+  "prompt_index": 12,
+  "id": "007086-0087",
+  "prompt": "an alien planet viewed from space, extremely, beautiful, dynamic, creative, cinematic",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.5488026142120361,
+  "best_reward": 0.8424091339111328,
+  "mean_reward": 0.5488026142120361,
+  "std_reward": 0.21686962246894836,
+  "max_reward": 0.8424091339111328,
+  "min_reward": 0.05288185924291611,
+  "time_seconds": 84.880577,
+  "thresholds": [
+    0.49203187599778175,
+    0.5291349347680807,
+    0.5777830351144075
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.44547128677368164,
+      "std": 0.34842756390571594,
+      "max": 0.8424091339111328,
+      "min": -0.41819337010383606,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5025061964988708,
+      "std": 0.19927123188972473,
+      "max": 0.8424091339111328,
+      "min": 0.18014030158519745,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5488026142120361,
+      "std": 0.21686962246894836,
+      "max": 0.8424091339111328,
+      "min": 0.05288185924291611,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

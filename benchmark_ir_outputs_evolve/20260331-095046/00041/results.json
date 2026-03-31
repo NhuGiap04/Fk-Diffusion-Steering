@@ -1,0 +1,30 @@
+{
+  "prompt_index": 41,
+  "id": "007749-0112",
+  "prompt": "delicious plate of food",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": 0.03325633704662323,
+  "mean_reward": -0.35668057203292847,
+  "std_reward": 0.41766610741615295,
+  "max_reward": 0.03325633704662323,
+  "min_reward": -1.3063223361968994,
+  "time_seconds": 39.133233,
+  "thresholds": [
+    0.055812980979681015
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.35668057203292847,
+      "std": 0.41766610741615295,
+      "max": 0.03325633704662323,
+      "min": -1.3063223361968994,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

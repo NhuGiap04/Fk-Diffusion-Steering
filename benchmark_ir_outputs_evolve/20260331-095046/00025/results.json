@@ -1,0 +1,48 @@
+{
+  "prompt_index": 25,
+  "id": "007191-0058",
+  "prompt": "full body portrait of cute girl wearing gown, d &, fantasy, portrait, highly detailed, digital painting, illustration, art by artgerm and greg rutkowski and magali villeneuve",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.114732027053833,
+  "best_reward": 1.5626124143600464,
+  "mean_reward": 1.114732027053833,
+  "std_reward": 0.34063249826431274,
+  "max_reward": 1.5626124143600464,
+  "min_reward": 0.5038476586341858,
+  "time_seconds": 79.907135,
+  "thresholds": [
+    1.0725123882293701,
+    1.1031433418393135,
+    1.1602509580552578
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.0258299112319946,
+      "std": 0.34933969378471375,
+      "max": 1.5626124143600464,
+      "min": 0.45357590913772583,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.0484927892684937,
+      "std": 0.4089672863483429,
+      "max": 1.5626124143600464,
+      "min": 0.3350948691368103,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.114732027053833,
+      "std": 0.34063249826431274,
+      "max": 1.5626124143600464,
+      "min": 0.5038476586341858,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

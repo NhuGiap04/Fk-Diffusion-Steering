@@ -1,0 +1,30 @@
+{
+  "prompt_index": 78,
+  "id": "012203-0031",
+  "prompt": "technology",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": -0.4053848385810852,
+  "mean_reward": -1.1115467548370361,
+  "std_reward": 0.6067560315132141,
+  "max_reward": -0.4053848385810852,
+  "min_reward": -1.9854744672775269,
+  "time_seconds": 39.167635,
+  "thresholds": [
+    0.08108118921518326
+  ],
+  "loop_stats": [
+    {
+      "mean": -1.1115467548370361,
+      "std": 0.6067560315132141,
+      "max": -0.4053848385810852,
+      "min": -1.9854744672775269,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

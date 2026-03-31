@@ -1,0 +1,48 @@
+{
+  "prompt_index": 88,
+  "id": "011623-0101",
+  "prompt": "A cheeseburger",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.4609054327011108,
+  "best_reward": 1.5855268239974976,
+  "mean_reward": 1.4609054327011108,
+  "std_reward": 0.08360183238983154,
+  "max_reward": 1.5855268239974976,
+  "min_reward": 1.2964692115783691,
+  "time_seconds": 74.85093,
+  "thresholds": [
+    0.7464921623468399,
+    1.3286236133426428,
+    1.4720771983265877
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.5802404880523682,
+      "std": 1.244113564491272,
+      "max": 1.4931151866912842,
+      "min": -1.9054856300354004,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.307545781135559,
+      "std": 0.1577320545911789,
+      "max": 1.4931151866912842,
+      "min": 0.9786706566810608,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.4609054327011108,
+      "std": 0.08360183238983154,
+      "max": 1.5855268239974976,
+      "min": 1.2964692115783691,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

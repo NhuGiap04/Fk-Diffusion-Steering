@@ -1,0 +1,48 @@
+{
+  "prompt_index": 21,
+  "id": "007019-0095",
+  "prompt": "astronaut drifting afloat in space, in the darkness away from anyone else, alone, black background dotted with stars, realistic",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.2789838314056396,
+  "best_reward": 1.4863011837005615,
+  "mean_reward": 1.2789838314056396,
+  "std_reward": 0.16157449781894684,
+  "max_reward": 1.4863011837005615,
+  "min_reward": 0.9669907093048096,
+  "time_seconds": 84.954198,
+  "thresholds": [
+    0.8726209960877895,
+    1.095782920718193,
+    1.3005751315504313
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.8206037878990173,
+      "std": 0.3892611265182495,
+      "max": 1.4573761224746704,
+      "min": 0.10674113035202026,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.0613150596618652,
+      "std": 0.2579338550567627,
+      "max": 1.4573761224746704,
+      "min": 0.6807690858840942,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.2789838314056396,
+      "std": 0.16157449781894684,
+      "max": 1.4863011837005615,
+      "min": 0.9669907093048096,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

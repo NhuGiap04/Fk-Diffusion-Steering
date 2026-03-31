@@ -1,0 +1,48 @@
+{
+  "prompt_index": 5,
+  "id": "005937-0170",
+  "prompt": "a cute cat",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.7957068085670471,
+  "best_reward": 1.47820246219635,
+  "mean_reward": 0.7957068085670471,
+  "std_reward": 0.5065124034881592,
+  "max_reward": 1.47820246219635,
+  "min_reward": -2.9994416763656773e-05,
+  "time_seconds": 84.875669,
+  "thresholds": [
+    0.7433714270591736,
+    0.8072411939501762,
+    0.8633923754096031
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.6757746338844299,
+      "std": 0.5058481097221375,
+      "max": 1.47820246219635,
+      "min": 0.007891559973359108,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.7382658123970032,
+      "std": 0.5161644816398621,
+      "max": 1.47820246219635,
+      "min": 0.0021540606394410133,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.7957068085670471,
+      "std": 0.5065124034881592,
+      "max": 1.47820246219635,
+      "min": -2.9994416763656773e-05,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

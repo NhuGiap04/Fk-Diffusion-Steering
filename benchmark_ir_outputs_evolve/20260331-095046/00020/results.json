@@ -1,0 +1,48 @@
+{
+  "prompt_index": 20,
+  "id": "000539-0052",
+  "prompt": "old man ( long white beard and a hood ) riding on lions back",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.7561216354370117,
+  "best_reward": 1.9276694059371948,
+  "mean_reward": 1.6949092149734497,
+  "std_reward": 0.33590155839920044,
+  "max_reward": 1.9276694059371948,
+  "min_reward": 0.8472368717193604,
+  "time_seconds": 69.582488,
+  "thresholds": [
+    1.7771543096750975,
+    1.7751542069017887,
+    1.8010083697736263
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.7522772550582886,
+      "std": 0.1861628293991089,
+      "max": 1.9276694059371948,
+      "min": 1.2792712450027466,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.7561216354370117,
+      "std": 0.14242671430110931,
+      "max": 1.9276694059371948,
+      "min": 1.4566963911056519,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.6949092149734497,
+      "std": 0.33590155839920044,
+      "max": 1.9276694059371948,
+      "min": 0.8472368717193604,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

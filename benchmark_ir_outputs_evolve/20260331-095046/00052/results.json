@@ -1,0 +1,48 @@
+{
+  "prompt_index": 52,
+  "id": "009624-0144",
+  "prompt": "photograph of table shaped like an avocado, product, intricate detail",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.44252538681030273,
+  "best_reward": 1.5146235227584839,
+  "mean_reward": 0.44252538681030273,
+  "std_reward": 0.7790884971618652,
+  "max_reward": 1.5146235227584839,
+  "min_reward": -0.8500471115112305,
+  "time_seconds": 84.791093,
+  "thresholds": [
+    0.12395770102739334,
+    0.13385625183582306,
+    0.5466354638338089
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.17570537328720093,
+      "std": 0.9276145100593567,
+      "max": 1.4284515380859375,
+      "min": -1.2355033159255981,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": -0.03360690549015999,
+      "std": 1.0016884803771973,
+      "max": 1.4284515380859375,
+      "min": -1.7696055173873901,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.44252538681030273,
+      "std": 0.7790884971618652,
+      "max": 1.5146235227584839,
+      "min": -0.8500471115112305,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

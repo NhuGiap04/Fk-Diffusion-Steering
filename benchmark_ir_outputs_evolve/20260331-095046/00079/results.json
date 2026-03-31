@@ -1,0 +1,48 @@
+{
+  "prompt_index": 79,
+  "id": "001973-0059",
+  "prompt": "a beautiful plant, aesthetic, oil, painting, pale",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.8683194518089294,
+  "best_reward": 0.9699057936668396,
+  "mean_reward": 0.8683194518089294,
+  "std_reward": 0.07497899234294891,
+  "max_reward": 0.9699057936668396,
+  "min_reward": 0.7480849027633667,
+  "time_seconds": 84.511987,
+  "thresholds": [
+    0.6676763873547316,
+    0.8269102666527033,
+    0.8783389404416084
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.6436069011688232,
+      "std": 0.18011952936649323,
+      "max": 0.9699057936668396,
+      "min": 0.44809627532958984,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8061825633049011,
+      "std": 0.15511192381381989,
+      "max": 0.9699057936668396,
+      "min": 0.48638543486595154,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8683194518089294,
+      "std": 0.07497899234294891,
+      "max": 0.9699057936668396,
+      "min": 0.7480849027633667,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

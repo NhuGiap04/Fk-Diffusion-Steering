@@ -1,0 +1,30 @@
+{
+  "prompt_index": 26,
+  "id": "007242-0101",
+  "prompt": "a portrait of a cat dog",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": -0.02250821515917778,
+  "mean_reward": -0.30895814299583435,
+  "std_reward": 0.2744632363319397,
+  "max_reward": -0.02250821515917778,
+  "min_reward": -0.77336186170578,
+  "time_seconds": 39.119828,
+  "thresholds": [
+    0.036676693707704544
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.30895814299583435,
+      "std": 0.2744632363319397,
+      "max": -0.02250821515917778,
+      "min": -0.77336186170578,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

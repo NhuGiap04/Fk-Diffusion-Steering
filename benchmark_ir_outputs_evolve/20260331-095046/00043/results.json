@@ -1,0 +1,48 @@
+{
+  "prompt_index": 43,
+  "id": "008251-0021",
+  "prompt": "view from earth atmosphere to the stars sci fi",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.44372129440307617,
+  "best_reward": 0.6582937240600586,
+  "mean_reward": 0.44372129440307617,
+  "std_reward": 0.2596917450428009,
+  "max_reward": 0.6582937240600586,
+  "min_reward": -0.18594786524772644,
+  "time_seconds": 84.892224,
+  "thresholds": [
+    0.0350349061191082,
+    0.45319410413503647,
+    0.4784240648150444
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.011285608634352684,
+      "std": 0.2621772289276123,
+      "max": 0.3936879634857178,
+      "min": -0.5197779536247253,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.4299708604812622,
+      "std": 0.17378683388233185,
+      "max": 0.6582937240600586,
+      "min": 0.20520392060279846,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.44372129440307617,
+      "std": 0.2596917450428009,
+      "max": 0.6582937240600586,
+      "min": -0.18594786524772644,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

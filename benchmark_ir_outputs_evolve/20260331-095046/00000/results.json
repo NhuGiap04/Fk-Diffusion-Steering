@@ -1,0 +1,48 @@
+{
+  "prompt_index": 0,
+  "id": "005695-0057",
+  "prompt": "a concept art of a vehicle, cyberpunk",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.2793506979942322,
+  "best_reward": 1.0404304265975952,
+  "mean_reward": 0.2793506979942322,
+  "std_reward": 0.5525346398353577,
+  "max_reward": 1.0404304265975952,
+  "min_reward": -0.3904222249984741,
+  "time_seconds": 172.121523,
+  "thresholds": [
+    0.2434883415699005,
+    0.29531002789735794,
+    0.3531862497329712
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.15548771619796753,
+      "std": 0.6585363745689392,
+      "max": 1.0404304265975952,
+      "min": -0.6230108141899109,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.2104169726371765,
+      "std": 0.6352814435958862,
+      "max": 1.0404304265975952,
+      "min": -0.6130957007408142,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.2793506979942322,
+      "std": 0.5525346398353577,
+      "max": 1.0404304265975952,
+      "min": -0.3904222249984741,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "prompt_index": 74,
+  "id": "001273-0046",
+  "prompt": "a red car",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.331552118062973,
+  "best_reward": 0.8287050127983093,
+  "mean_reward": 0.331552118062973,
+  "std_reward": 0.5284312963485718,
+  "max_reward": 0.8287050127983093,
+  "min_reward": -1.0035737752914429,
+  "time_seconds": 69.740204,
+  "thresholds": [
+    0.25398558750748634,
+    0.2887984588742256,
+    0.4021667242050171
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.1928654909133911,
+      "std": 0.45738092064857483,
+      "max": 0.639636754989624,
+      "min": -0.9610996246337891,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.09320557117462158,
+      "std": 0.717896580696106,
+      "max": 0.639636754989624,
+      "min": -1.7723541259765625,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.331552118062973,
+      "std": 0.5284312963485718,
+      "max": 0.8287050127983093,
+      "min": -1.0035737752914429,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

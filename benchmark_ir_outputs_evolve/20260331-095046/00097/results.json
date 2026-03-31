@@ -1,0 +1,30 @@
+{
+  "prompt_index": 97,
+  "id": "002188-0054",
+  "prompt": "photo of a interior taken with a cheap digital camera at night flash lighting",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": 0.02540305070579052,
+  "mean_reward": -0.555458128452301,
+  "std_reward": 0.3739115297794342,
+  "max_reward": 0.02540305070579052,
+  "min_reward": -1.1793107986450195,
+  "time_seconds": 39.14883,
+  "thresholds": [
+    0.049966029822826385
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.555458128452301,
+      "std": 0.3739115297794342,
+      "max": 0.02540305070579052,
+      "min": -1.1793107986450195,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

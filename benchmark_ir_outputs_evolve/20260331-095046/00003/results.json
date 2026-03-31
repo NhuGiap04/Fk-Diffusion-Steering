@@ -1,0 +1,48 @@
+{
+  "prompt_index": 3,
+  "id": "005765-0094",
+  "prompt": "anthropomorphic crow werecreature, photograph captured in a forest",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.8362299799919128,
+  "best_reward": 0.9214092493057251,
+  "mean_reward": 0.826350212097168,
+  "std_reward": 0.09380888938903809,
+  "max_reward": 0.9214092493057251,
+  "min_reward": 0.6938193440437317,
+  "time_seconds": 74.664907,
+  "thresholds": [
+    0.747807901352644,
+    0.8445443399250507,
+    0.8487657196819782
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.7215793132781982,
+      "std": 0.19627678394317627,
+      "max": 0.9150455594062805,
+      "min": 0.32167375087738037,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8362299799919128,
+      "std": 0.06221897155046463,
+      "max": 0.9150455594062805,
+      "min": 0.7233543395996094,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.826350212097168,
+      "std": 0.09380888938903809,
+      "max": 0.9214092493057251,
+      "min": 0.6938193440437317,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

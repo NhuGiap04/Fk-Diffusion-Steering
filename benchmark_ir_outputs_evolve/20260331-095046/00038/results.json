@@ -1,0 +1,48 @@
+{
+  "prompt_index": 38,
+  "id": "007654-0033",
+  "prompt": "wood logs in the shape of a square",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.8593023419380188,
+  "best_reward": 1.3795084953308105,
+  "mean_reward": 0.8063978552818298,
+  "std_reward": 0.25647956132888794,
+  "max_reward": 1.3795084953308105,
+  "min_reward": 0.4903854727745056,
+  "time_seconds": 79.901394,
+  "thresholds": [
+    0.5403799265623093,
+    0.8912501260638237,
+    0.8935758657753468
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.40196332335472107,
+      "std": 1.0358150005340576,
+      "max": 1.3795084953308105,
+      "min": -2.2170021533966064,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8593023419380188,
+      "std": 0.23907533288002014,
+      "max": 1.3795084953308105,
+      "min": 0.4586701989173889,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.8063978552818298,
+      "std": 0.25647956132888794,
+      "max": 1.3795084953308105,
+      "min": 0.4903854727745056,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

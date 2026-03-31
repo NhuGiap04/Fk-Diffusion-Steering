@@ -1,0 +1,30 @@
+{
+  "prompt_index": 51,
+  "id": "008866-0195",
+  "prompt": "natural suburb with multiple low rise apartment buildings in a park like setting with green hilly lawns and lush trees, pine wooden walls, rustic, large glass windows, cobblestone, grass, white, natural pathways, natural materials, minimalist, swedish design, bright, feng shui, modern, technology, frank lloyd wright",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": -0.2895087003707886,
+  "mean_reward": -1.3039368391036987,
+  "std_reward": 0.46686071157455444,
+  "max_reward": -0.2895087003707886,
+  "min_reward": -2.091576337814331,
+  "time_seconds": 39.122371,
+  "thresholds": [
+    0.0623868852853775
+  ],
+  "loop_stats": [
+    {
+      "mean": -1.3039368391036987,
+      "std": 0.46686071157455444,
+      "max": -0.2895087003707886,
+      "min": -2.091576337814331,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

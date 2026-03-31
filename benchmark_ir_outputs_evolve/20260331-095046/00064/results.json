@@ -1,0 +1,30 @@
+{
+  "prompt_index": 64,
+  "id": "010856-0009",
+  "prompt": "funny peanut butter",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 1,
+  "early_stopped": true,
+  "early_stop_reason": "No accepted particles left to steer rejected particles.",
+  "best_mean_reward": 0.0,
+  "best_reward": 0.06188110634684563,
+  "mean_reward": -0.8719937801361084,
+  "std_reward": 0.7943827509880066,
+  "max_reward": 0.06188110634684563,
+  "min_reward": -2.271495819091797,
+  "time_seconds": 39.132128,
+  "thresholds": [
+    0.10615386068820953
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.8719937801361084,
+      "std": 0.7943827509880066,
+      "max": 0.06188110634684563,
+      "min": -2.271495819091797,
+      "loop": 1,
+      "num_particles": 8
+    }
+  ]
+}

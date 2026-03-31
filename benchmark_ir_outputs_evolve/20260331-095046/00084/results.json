@@ -1,0 +1,48 @@
+{
+  "prompt_index": 84,
+  "id": "011729-0165",
+  "prompt": "roman temple ruin, soft grey and blue natural light, crepuscular rays, intricate, digital painting, illustration, art by greg rutkowski and luis rollo and uang guangjian and gil elvgren, symmetry",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.2156215906143188,
+  "best_reward": 1.4386957883834839,
+  "mean_reward": 1.190995454788208,
+  "std_reward": 0.27039241790771484,
+  "max_reward": 1.4386957883834839,
+  "min_reward": 0.5539343357086182,
+  "time_seconds": 74.594794,
+  "thresholds": [
+    1.0252205021679401,
+    1.2398127149790525,
+    1.2517542950809002
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.9885910749435425,
+      "std": 0.27410951256752014,
+      "max": 1.4030152559280396,
+      "min": 0.4886494278907776,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.2156215906143188,
+      "std": 0.1810297966003418,
+      "max": 1.4386957883834839,
+      "min": 0.8718216419219971,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.190995454788208,
+      "std": 0.27039241790771484,
+      "max": 1.4386957883834839,
+      "min": 0.5539343357086182,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

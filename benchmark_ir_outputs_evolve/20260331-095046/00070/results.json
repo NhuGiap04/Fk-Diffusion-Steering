@@ -1,0 +1,48 @@
+{
+  "prompt_index": 70,
+  "id": "001238-0091",
+  "prompt": "atmospheric psychedelic breathtaking translucent ethereal",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.6277793645858765,
+  "best_reward": 0.919186532497406,
+  "mean_reward": 0.6277793645858765,
+  "std_reward": 0.22934889793395996,
+  "max_reward": 0.919186532497406,
+  "min_reward": 0.1600991189479828,
+  "time_seconds": 94.667116,
+  "thresholds": [
+    0.25254614651203156,
+    0.5766541138291359,
+    0.6584274005144835
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.21406710147857666,
+      "std": 0.2879507839679718,
+      "max": 0.7747703194618225,
+      "min": -0.30619293451309204,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.5610026717185974,
+      "std": 0.11712466925382614,
+      "max": 0.7747703194618225,
+      "min": 0.4130670726299286,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.6277793645858765,
+      "std": 0.22934889793395996,
+      "max": 0.919186532497406,
+      "min": 0.1600991189479828,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

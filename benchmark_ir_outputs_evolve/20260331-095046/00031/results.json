@@ -1,0 +1,48 @@
+{
+  "prompt_index": 31,
+  "id": "007205-0046",
+  "prompt": "a modern, contemporary studio apartment interior",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.19436323642730713,
+  "best_reward": 0.5014329552650452,
+  "mean_reward": 0.19436323642730713,
+  "std_reward": 0.17361120879650116,
+  "max_reward": 0.5014329552650452,
+  "min_reward": -0.12303213775157928,
+  "time_seconds": 94.645555,
+  "thresholds": [
+    0.05150769278407097,
+    0.18297821283340454,
+    0.21756301075220108
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.19212253391742706,
+      "std": 0.38544827699661255,
+      "max": 0.2838813066482544,
+      "min": -1.0681158304214478,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.16235555708408356,
+      "std": 0.15432582795619965,
+      "max": 0.5014329552650452,
+      "min": 0.011565284803509712,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.19436323642730713,
+      "std": 0.17361120879650116,
+      "max": 0.5014329552650452,
+      "min": -0.12303213775157928,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

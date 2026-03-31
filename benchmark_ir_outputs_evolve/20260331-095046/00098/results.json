@@ -1,0 +1,48 @@
+{
+  "prompt_index": 98,
+  "id": "000324-0042",
+  "prompt": "water bottle",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.24606165289878845,
+  "best_reward": 0.5570451021194458,
+  "mean_reward": 0.24606165289878845,
+  "std_reward": 0.23534683883190155,
+  "max_reward": 0.5570451021194458,
+  "min_reward": -0.2140531837940216,
+  "time_seconds": 84.632372,
+  "thresholds": [
+    0.08584313094615936,
+    0.10111295431852341,
+    0.27751119807362556
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.5525440573692322,
+      "std": 0.6423911452293396,
+      "max": 0.5272358059883118,
+      "min": -1.3584208488464355,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.0365687757730484,
+      "std": 0.4830043911933899,
+      "max": 0.5272358059883118,
+      "min": -1.1244254112243652,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.24606165289878845,
+      "std": 0.23534683883190155,
+      "max": 0.5570451021194458,
+      "min": -0.2140531837940216,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "prompt_index": 63,
+  "id": "010873-0040",
+  "prompt": "face icon stylized minimalist trigun, loftis, cory behance hd by jesper ejsing, by rhads, makoto shinkai and lois van baarle, ilya kuvshinov, rossdraws global illumination",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.16486535966396332,
+  "best_reward": 1.0468835830688477,
+  "mean_reward": 0.03755960613489151,
+  "std_reward": 0.8248820304870605,
+  "max_reward": 1.0468835830688477,
+  "min_reward": -1.09709632396698,
+  "time_seconds": 79.813309,
+  "thresholds": [
+    0.09926633536815643,
+    0.255715936422348,
+    0.2750948593020439
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.24618110060691833,
+      "std": 0.7428412437438965,
+      "max": 0.8552889823913574,
+      "min": -1.0794928073883057,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.16486535966396332,
+      "std": 0.679863452911377,
+      "max": 1.0468835830688477,
+      "min": -0.9128506779670715,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.03755960613489151,
+      "std": 0.8248820304870605,
+      "max": 1.0468835830688477,
+      "min": -1.09709632396698,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

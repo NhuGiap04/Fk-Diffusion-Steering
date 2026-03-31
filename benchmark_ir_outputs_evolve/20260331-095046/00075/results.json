@@ -1,0 +1,48 @@
+{
+  "prompt_index": 75,
+  "id": "001637-0022",
+  "prompt": "The End, digital art, trending",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.35543954372406006,
+  "best_reward": 0.6477118730545044,
+  "mean_reward": 0.35543954372406006,
+  "std_reward": 0.3234078288078308,
+  "max_reward": 0.6477118730545044,
+  "min_reward": -0.44857844710350037,
+  "time_seconds": 79.786253,
+  "thresholds": [
+    0.07225430011749268,
+    0.18449054658412933,
+    0.3986567333340645
+  ],
+  "loop_stats": [
+    {
+      "mean": -0.13180643320083618,
+      "std": 0.540701687335968,
+      "max": 0.4868071973323822,
+      "min": -1.154414176940918,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.12614235281944275,
+      "std": 0.43663790822029114,
+      "max": 0.5776525139808655,
+      "min": -0.7575932145118713,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.35543954372406006,
+      "std": 0.3234078288078308,
+      "max": 0.6477118730545044,
+      "min": -0.44857844710350037,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

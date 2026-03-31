@@ -1,0 +1,48 @@
+{
+  "prompt_index": 4,
+  "id": "005846-0102",
+  "prompt": "a beautiful portrait of a beautiful woman in the jungle surrounded by pink flowers, shamanism, matte painting, fantasy art",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.9519367218017578,
+  "best_reward": 1.9884768724441528,
+  "mean_reward": 1.9519367218017578,
+  "std_reward": 0.02544441632926464,
+  "max_reward": 1.9884768724441528,
+  "min_reward": 1.8996440172195435,
+  "time_seconds": 64.664695,
+  "thresholds": [
+    1.8480132520198822,
+    1.9453405854292214,
+    1.9553368748165667
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.8116366863250732,
+      "std": 0.2722172737121582,
+      "max": 1.9884768724441528,
+      "min": 1.1299467086791992,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.9406598806381226,
+      "std": 0.03502718731760979,
+      "max": 1.9884768724441528,
+      "min": 1.8868926763534546,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.9519367218017578,
+      "std": 0.02544441632926464,
+      "max": 1.9884768724441528,
+      "min": 1.8996440172195435,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

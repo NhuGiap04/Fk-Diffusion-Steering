@@ -1,0 +1,48 @@
+{
+  "prompt_index": 9,
+  "id": "005903-0142",
+  "prompt": "landscape photography by marc adamus, mountains with some forests, small lake in the center, fog in the background, sunrays, golden hour, high",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 1.0800220966339111,
+  "best_reward": 1.4158885478973389,
+  "mean_reward": 1.0800220966339111,
+  "std_reward": 0.27044424414634705,
+  "max_reward": 1.4158885478973389,
+  "min_reward": 0.4331033527851105,
+  "time_seconds": 79.659474,
+  "thresholds": [
+    1.0404545702040195,
+    1.0536955930292606,
+    1.1161617264151573
+  ],
+  "loop_stats": [
+    {
+      "mean": 1.0088287591934204,
+      "std": 0.23666588962078094,
+      "max": 1.4158885478973389,
+      "min": 0.5578608512878418,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.017378807067871,
+      "std": 0.2717699408531189,
+      "max": 1.4158885478973389,
+      "min": 0.5538598895072937,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 1.0800220966339111,
+      "std": 0.27044424414634705,
+      "max": 1.4158885478973389,
+      "min": 0.4331033527851105,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}

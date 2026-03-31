@@ -1,0 +1,48 @@
+{
+  "prompt_index": 96,
+  "id": "001013-0094",
+  "prompt": "modern oil painting Atelier",
+  "reward_name": "ImageReward",
+  "num_particles": 8,
+  "completed_loops": 3,
+  "early_stopped": false,
+  "early_stop_reason": null,
+  "best_mean_reward": 0.7284896969795227,
+  "best_reward": 0.9108778238296509,
+  "mean_reward": 0.7162026166915894,
+  "std_reward": 0.14596445858478546,
+  "max_reward": 0.9108778238296509,
+  "min_reward": 0.4581880271434784,
+  "time_seconds": 79.693101,
+  "thresholds": [
+    0.7298280810937285,
+    0.7453367561101913,
+    0.7479950189590454
+  ],
+  "loop_stats": [
+    {
+      "mean": 0.714850664138794,
+      "std": 0.11208073049783707,
+      "max": 0.9108778238296509,
+      "min": 0.5354493856430054,
+      "loop": 1,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.7284896969795227,
+      "std": 0.12607184052467346,
+      "max": 0.9108778238296509,
+      "min": 0.514282763004303,
+      "loop": 2,
+      "num_particles": 8
+    },
+    {
+      "mean": 0.7162026166915894,
+      "std": 0.14596445858478546,
+      "max": 0.9108778238296509,
+      "min": 0.4581880271434784,
+      "loop": 3,
+      "num_particles": 8
+    }
+  ]
+}
