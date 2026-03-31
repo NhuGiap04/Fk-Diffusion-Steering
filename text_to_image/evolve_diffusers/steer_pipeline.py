@@ -364,7 +364,14 @@ def _randn_like_with_generator(
         ]
         return torch.cat(parts, dim=0)
 
-    return torch.randn_like(x, generator=generator)
+    # Some torch versions do not support `generator=` in randn_like.
+    # Use randn with explicit shape/device/dtype for broad compatibility.
+    return torch.randn(
+        x.shape,
+        device=x.device,
+        dtype=x.dtype,
+        generator=generator,
+    )
 
 
 def _renoise_x0_to_timestep(
