@@ -166,15 +166,6 @@ def main(args: argparse.Namespace) -> None:
         with open(prompt_output_dir / "results.json", "w", encoding="utf-8") as f:
             json.dump(row, f, indent=2)
 
-        if args.save_individual_images and len(final_images) > 0:
-            image_dir = prompt_output_dir / "samples"
-            image_dir.mkdir(parents=True, exist_ok=True)
-
-            # Save final-loop images sorted by reward (best first).
-            sort_idx = np.argsort(final_rewards.numpy())[::-1]
-            for rank, image_idx in enumerate(sort_idx):
-                final_images[int(image_idx)].save(image_dir / f"{rank:05d}.png")
-
         print(
             f"[{prompt_idx + 1}/{len(prompt_data)}] "
             f"id={item_id} "
