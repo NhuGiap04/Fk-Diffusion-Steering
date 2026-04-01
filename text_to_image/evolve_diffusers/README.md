@@ -95,12 +95,13 @@ loop_out = iterative_sample_with_stein(
     num_particles=4,
     steer_start_timestep=160,
     steer_end_timestep=20,
-    base_threshold=0.0,
     stein_step_size=0.04,
     guidance_scale=5.0,
     guidance_reward_fn="ImageReward",
     num_inference_steps=50,
 )
+
+# Warmup threshold is automatically set to the warmup reward mean.
 
 print(loop_out["best_mean_reward"], len(loop_out["trajectories"]))
 ```

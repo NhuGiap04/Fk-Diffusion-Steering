@@ -115,7 +115,6 @@ def main(args: argparse.Namespace) -> None:
             num_particles=args.num_particles,
             steer_start_timestep=args.steer_start_timestep,
             steer_end_timestep=args.steer_end_timestep,
-            base_threshold=args.base_threshold,
             stein_step_size=args.stein_step_size,
             stein_num_steps=args.stein_num_steps,
             stein_bandwidth=args.stein_bandwidth,
@@ -236,7 +235,6 @@ def get_args() -> argparse.Namespace:
 
     parser.add_argument("--steer_start_timestep", type=int, default=400)
     parser.add_argument("--steer_end_timestep", type=int, default=150)
-    parser.add_argument("--base_threshold", type=float, default=0.0)
     parser.add_argument("--stein_step_size", type=float, default=1e-6)
     parser.add_argument("--stein_num_steps", type=int, default=10)
     parser.add_argument("--stein_bandwidth", type=float, default=None)

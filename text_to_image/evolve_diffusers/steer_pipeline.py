@@ -506,7 +506,6 @@ def iterative_sample_with_stein(
     num_particles: int,
     steer_start_timestep: int,
     steer_end_timestep: int = 0,
-    base_threshold: float = 0.0,
     stein_step_size: float = 0.05,
     stein_num_steps: int = 1,
     stein_bandwidth: Optional[float] = None,
@@ -522,12 +521,13 @@ def iterative_sample_with_stein(
     Iteratively self-improve particle pools with warmup, steering, and replacement.
 
     Behavior:
-    1) Warmup: collect `num_particles` samples and split with `base_threshold`.
+    1) Warmup: collect `num_particles` samples and split at warmup mean reward.
     2) Loop N times:
        - steer rejected particles from `steer_start_timestep` to `steer_end_timestep`
          using the accepted pool,
        - evaluate rewards,
-       - replace weak newly-generated particles using a loop reward gate,
+             - resample weak population from good population via multinomial selection
+                 weighted by good rewards,
        - update threshold and refresh accepted/rejected pools for the next loop.
     3) Optional early stop if reward improvement is below epsilon for 2 consecutive transitions.
     """
@@ -544,7 +544,7 @@ def iterative_sample_with_stein(
     all_rejected: List[torch.Tensor] = []
 
     best_mean_reward = -float("inf")
-    running_base_threshold = float(base_threshold)
+    running_threshold = float("nan")
     best_reward = float("-inf")
     std_reward = 0.0
     min_reward = float("inf")
@@ -559,7 +559,7 @@ def iterative_sample_with_stein(
     early_stopped = False
     early_stop_reason: Optional[str] = None
 
-    # Warmup: sample K particles and build the initial support using base threshold.
+    # Warmup: sample K particles and build the initial support using warmup mean reward.
     generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
         prompt=prompt,
         num_particles=num_particles,
@@ -585,7 +585,9 @@ def iterative_sample_with_stein(
         dtype=torch.float32,
     )
     warmup_final_latents = warmup_trajectory[-1]
-    warmup_accept_mask = warmup_rewards >= running_base_threshold
+    warmup_threshold = float(warmup_rewards.mean().item())
+    running_threshold = warmup_threshold
+    warmup_accept_mask = warmup_rewards >= warmup_threshold
     if not bool(warmup_accept_mask.any()):
         # Keep at least one support particle so steering can proceed.
         best_idx = int(torch.argmax(warmup_rewards).item())
@@ -685,68 +687,6 @@ def iterative_sample_with_stein(
         )
         improved_latents = latent_trajectory[-1]
 
-        # Replacement step: discard weak current-loop samples and regenerate them.
-        loop_reward_gate = float(improved_rewards.mean().item())
-        weak_mask = improved_rewards < loop_reward_gate
-        if bool(weak_mask.any()):
-            weak_latents = improved_latents[weak_mask]
-            weak_count = int(weak_latents.shape[0])
-            replacement_prompt, replacement_nipp, replacement_reward_prompts = _resolve_prompt_and_particles(
-                prompt=prompt,
-                num_particles=weak_count,
-            )
-            replacement_restart_latents = _renoise_x0_to_timestep(
-                model=model,
-                x0_latents=weak_latents,
-                timestep=restart_noise_timestep,
-                generator=kwargs.get("generator", None),
-            )
-            replacement_kwargs: Dict[str, Any] = {
-                "model": model,
-                "prompt": replacement_prompt,
-                "accepted_x0": accepted_pool,
-                "rejected_x0": weak_latents,
-                "steer_start_timestep": steer_start_timestep,
-                "steer_end_timestep": steer_end_timestep,
-                "stein_step_size": stein_step_size,
-                "stein_num_steps": stein_num_steps,
-                "stein_bandwidth": stein_bandwidth,
-                "stein_rejected_penalty": stein_rejected_penalty,
-                "num_images_per_prompt": replacement_nipp,
-                "num_inference_steps": restart_num_inference_steps,
-                "guidance_scale": guidance_scale,
-                "latents": replacement_restart_latents,
-                "output_type": "pil",
-                "return_dict": True,
-                **kwargs,
-            }
-            if restart_timesteps is not None:
-                replacement_kwargs["timesteps"] = restart_timesteps
-
-            replacement_result, replacement_trajectory = steer_sample(**replacement_kwargs)
-            replacement_images = list(replacement_result.images)
-            replacement_rewards = torch.as_tensor(
-                get_reward_function(
-                    reward_name=guidance_reward_fn,
-                    images=replacement_images,
-                    prompts=replacement_reward_prompts,
-                    metric_to_chase=metric_to_chase or "overall_score",
-                ),
-                dtype=torch.float32,
-            )
-            replacement_final_latents = replacement_trajectory[-1]
-
-            # Keep better samples between weak originals and regenerated candidates.
-            weak_indices = torch.where(weak_mask)[0]
-            keep_new = replacement_rewards > improved_rewards[weak_mask]
-            if bool(keep_new.any()):
-                for j in range(weak_count):
-                    if bool(keep_new[j].item()):
-                        idx = int(weak_indices[j].item())
-                        improved_rewards[idx] = replacement_rewards[j]
-                        improved_latents[idx] = replacement_final_latents[j]
-                        improved_images[idx] = replacement_images[j]
-
         images = [*accepted_images_pool, *improved_images]
         rewards = torch.cat(
             [
@@ -766,8 +706,8 @@ def iterative_sample_with_stein(
         if mean_reward > best_mean_reward:
             best_mean_reward = mean_reward
 
-        running_base_threshold = best_mean_reward + std_reward / float(current_particle_count)
-        threshold = running_base_threshold
+        running_threshold = best_mean_reward + std_reward / float(current_particle_count)
+        threshold = running_threshold
 
         accept_mask = rewards >= threshold
         if not bool(accept_mask.any()):
@@ -777,10 +717,28 @@ def iterative_sample_with_stein(
 
         accepted_latents = final_latents[accept_mask]
         rejected_latents = final_latents[reject_mask]
-        accepted_rewards = rewards[accept_mask].to(dtype=torch.float32).cpu()
+        accepted_rewards_for_sampling = rewards[accept_mask].to(dtype=torch.float32)
+        accepted_rewards = accepted_rewards_for_sampling.cpu()
 
         accepted_images = [img for i, img in enumerate(images) if bool(accept_mask[i].item())]
         rejected_images = [img for i, img in enumerate(images) if bool(reject_mask[i].item())]
+
+        # Resample weak particles from the good population with probabilities
+        # proportional to good rewards (via softmax), then use this as next rejected pool.
+        weak_count = int(rejected_latents.shape[0])
+        if weak_count > 0 and accepted_latents.shape[0] > 0:
+            sampling_probs = torch.softmax(
+                accepted_rewards_for_sampling.to(device=accepted_latents.device),
+                dim=0,
+            )
+            sampled_indices = torch.multinomial(
+                sampling_probs,
+                num_samples=weak_count,
+                replacement=True,
+            )
+            rejected_latents = accepted_latents[sampled_indices].clone()
+            sampled_indices_list = sampled_indices.detach().cpu().tolist()
+            rejected_images = [accepted_images[int(i)] for i in sampled_indices_list]
 
         accepted_pool = accepted_latents
         accepted_pool_rewards = accepted_rewards
