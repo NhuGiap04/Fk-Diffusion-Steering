@@ -519,14 +519,17 @@ def iterative_sample_with_stein(
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
-    Iteratively self-improve a fixed particle set with thresholded Stein steering.
+    Iteratively self-improve particle pools with warmup, steering, and replacement.
 
-    Loop behavior:
-    1) First loop samples once from noise.
-    2) Later loops re-noise only rejected x0 to `steer_start_timestep`.
-    3) Rejected particles are re-denoised while steering with the full accepted pool.
-    4) Threshold is updated after each loop and used for the next loop.
-    5) Optional early stop if reward improvement is below epsilon for 2 consecutive transitions.
+    Behavior:
+    1) Warmup: collect `num_particles` samples and split with `base_threshold`.
+    2) Loop N times:
+       - steer rejected particles from `steer_start_timestep` to `steer_end_timestep`
+         using the accepted pool,
+       - evaluate rewards,
+       - replace weak newly-generated particles using a loop reward gate,
+       - update threshold and refresh accepted/rejected pools for the next loop.
+    3) Optional early stop if reward improvement is below epsilon for 2 consecutive transitions.
     """
     if num_loops <= 0:
         raise ValueError("num_loops must be > 0")
@@ -556,134 +559,203 @@ def iterative_sample_with_stein(
     early_stopped = False
     early_stop_reason: Optional[str] = None
 
+    # Warmup: sample K particles and build the initial support using base threshold.
+    generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
+        prompt=prompt,
+        num_particles=num_particles,
+    )
+    warmup_result, warmup_trajectory = steer_sample(
+        model=model,
+        prompt=generation_prompt,
+        num_images_per_prompt=num_images_per_prompt,
+        num_inference_steps=num_inference_steps,
+        guidance_scale=guidance_scale,
+        output_type="pil",
+        return_dict=True,
+        **kwargs,
+    )
+    warmup_images = list(warmup_result.images)
+    warmup_rewards = torch.as_tensor(
+        get_reward_function(
+            reward_name=guidance_reward_fn,
+            images=warmup_images,
+            prompts=reward_prompts,
+            metric_to_chase=metric_to_chase or "overall_score",
+        ),
+        dtype=torch.float32,
+    )
+    warmup_final_latents = warmup_trajectory[-1]
+    warmup_accept_mask = warmup_rewards >= running_base_threshold
+    if not bool(warmup_accept_mask.any()):
+        # Keep at least one support particle so steering can proceed.
+        best_idx = int(torch.argmax(warmup_rewards).item())
+        warmup_accept_mask[best_idx] = True
+    warmup_reject_mask = ~warmup_accept_mask
+
+    accepted_pool = warmup_final_latents[warmup_accept_mask]
+    rejected_pool = warmup_final_latents[warmup_reject_mask]
+    accepted_pool_rewards = warmup_rewards[warmup_accept_mask].to(dtype=torch.float32).cpu()
+    accepted_images_pool = [img for i, img in enumerate(warmup_images) if bool(warmup_accept_mask[i].item())]
+    rejected_images_pool = [img for i, img in enumerate(warmup_images) if bool(warmup_reject_mask[i].item())]
+
     for loop_idx in range(num_loops):
-        if loop_idx == 0:
-            generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
-                prompt=prompt,
-                num_particles=num_particles,
-            )
+        if accepted_pool is None or accepted_pool.shape[0] == 0:
+            early_stopped = True
+            early_stop_reason = "No accepted particles available for steering."
+            break
+        if rejected_pool is None or rejected_pool.shape[0] == 0:
+            early_stopped = True
+            early_stop_reason = "No rejected particles left to improve."
+            break
 
-            result, latent_trajectory = steer_sample(
+        supports_custom_timesteps = _scheduler_supports_custom_timesteps(model)
+        restart_timesteps: Optional[List[int]] = None
+        if supports_custom_timesteps:
+            restart_timesteps = _get_restart_timesteps(
                 model=model,
-                prompt=generation_prompt,
-                num_images_per_prompt=num_images_per_prompt,
                 num_inference_steps=num_inference_steps,
-                guidance_scale=guidance_scale,
-                output_type="pil",
-                return_dict=True,
-                **kwargs,
+                steer_start_timestep=steer_start_timestep,
+                steer_end_timestep=steer_end_timestep,
+                device=rejected_pool.device,
             )
-
-            images = list(result.images)
-            rewards = torch.as_tensor(
-                get_reward_function(
-                    reward_name=guidance_reward_fn,
-                    images=images,
-                    prompts=reward_prompts,
-                    metric_to_chase=metric_to_chase or "overall_score",
-                ),
-                dtype=torch.float32,
-            )
-            final_latents = latent_trajectory[-1]
-            use_stein = False
-        else:
-            if accepted_pool is None or accepted_pool.shape[0] == 0:
-                early_stopped = True
-                early_stop_reason = "No accepted particles left to steer rejected particles."
-                break
-
-            if rejected_pool is None or rejected_pool.shape[0] == 0:
-                early_stopped = True
-                early_stop_reason = "No rejected particles left to resample."
-                break
-
-            supports_custom_timesteps = _scheduler_supports_custom_timesteps(model)
-            restart_timesteps: Optional[List[int]] = None
-            if supports_custom_timesteps:
-                restart_timesteps = _get_restart_timesteps(
-                    model=model,
-                    num_inference_steps=num_inference_steps,
-                    steer_start_timestep=steer_start_timestep,
-                    steer_end_timestep=steer_end_timestep,
-                    device=rejected_pool.device,
+            if len(restart_timesteps) == 0:
+                raise ValueError(
+                    "Unable to build restart timesteps for requested steer range "
+                    f"[{steer_start_timestep}, {steer_end_timestep}]"
                 )
-                if len(restart_timesteps) == 0:
-                    raise ValueError(
-                        "Unable to build restart timesteps for requested steer range "
-                        f"[{steer_start_timestep}, {steer_end_timestep}]"
-                    )
-                restart_noise_timestep = int(restart_timesteps[0])
-                restart_num_inference_steps = len(restart_timesteps)
-            else:
-                # Compatibility fallback for schedulers that reject custom timestep schedules.
-                model.scheduler.set_timesteps(num_inference_steps, device=rejected_pool.device)
-                schedule = [
-                    int(t.item()) if isinstance(t, torch.Tensor) else int(t)
-                    for t in model.scheduler.timesteps
-                ]
-                if len(schedule) == 0:
-                    raise ValueError("Scheduler produced empty timesteps schedule")
-                restart_noise_timestep = int(schedule[0])
-                restart_num_inference_steps = int(num_inference_steps)
+            restart_noise_timestep = int(restart_timesteps[0])
+            restart_num_inference_steps = len(restart_timesteps)
+        else:
+            # Compatibility fallback for schedulers that reject custom timestep schedules.
+            model.scheduler.set_timesteps(num_inference_steps, device=rejected_pool.device)
+            schedule = [
+                int(t.item()) if isinstance(t, torch.Tensor) else int(t)
+                for t in model.scheduler.timesteps
+            ]
+            if len(schedule) == 0:
+                raise ValueError("Scheduler produced empty timesteps schedule")
+            restart_noise_timestep = int(schedule[0])
+            restart_num_inference_steps = int(num_inference_steps)
 
-            generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
+        generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
+            prompt=prompt,
+            num_particles=int(rejected_pool.shape[0]),
+        )
+
+        restart_latents = _renoise_x0_to_timestep(
+            model=model,
+            x0_latents=rejected_pool,
+            timestep=restart_noise_timestep,
+            generator=kwargs.get("generator", None),
+        )
+
+        steer_sample_kwargs: Dict[str, Any] = {
+            "model": model,
+            "prompt": generation_prompt,
+            "accepted_x0": accepted_pool,
+            "rejected_x0": rejected_pool,
+            "steer_start_timestep": steer_start_timestep,
+            "steer_end_timestep": steer_end_timestep,
+            "stein_step_size": stein_step_size,
+            "stein_num_steps": stein_num_steps,
+            "stein_bandwidth": stein_bandwidth,
+            "stein_rejected_penalty": stein_rejected_penalty,
+            "num_images_per_prompt": num_images_per_prompt,
+            "num_inference_steps": restart_num_inference_steps,
+            "guidance_scale": guidance_scale,
+            "latents": restart_latents,
+            "output_type": "pil",
+            "return_dict": True,
+            **kwargs,
+        }
+        if restart_timesteps is not None:
+            steer_sample_kwargs["timesteps"] = restart_timesteps
+
+        result, latent_trajectory = steer_sample(**steer_sample_kwargs)
+
+        improved_images = list(result.images)
+        improved_rewards = torch.as_tensor(
+            get_reward_function(
+                reward_name=guidance_reward_fn,
+                images=improved_images,
+                prompts=reward_prompts,
+                metric_to_chase=metric_to_chase or "overall_score",
+            ),
+            dtype=torch.float32,
+        )
+        improved_latents = latent_trajectory[-1]
+
+        # Replacement step: discard weak current-loop samples and regenerate them.
+        loop_reward_gate = float(improved_rewards.mean().item())
+        weak_mask = improved_rewards < loop_reward_gate
+        if bool(weak_mask.any()):
+            weak_latents = improved_latents[weak_mask]
+            weak_count = int(weak_latents.shape[0])
+            replacement_prompt, replacement_nipp, replacement_reward_prompts = _resolve_prompt_and_particles(
                 prompt=prompt,
-                num_particles=int(rejected_pool.shape[0]),
+                num_particles=weak_count,
             )
-
-            restart_latents = _renoise_x0_to_timestep(
+            replacement_restart_latents = _renoise_x0_to_timestep(
                 model=model,
-                x0_latents=rejected_pool,
+                x0_latents=weak_latents,
                 timestep=restart_noise_timestep,
                 generator=kwargs.get("generator", None),
             )
-
-            steer_sample_kwargs: Dict[str, Any] = {
+            replacement_kwargs: Dict[str, Any] = {
                 "model": model,
-                "prompt": generation_prompt,
+                "prompt": replacement_prompt,
                 "accepted_x0": accepted_pool,
-                "rejected_x0": rejected_pool,
+                "rejected_x0": weak_latents,
                 "steer_start_timestep": steer_start_timestep,
                 "steer_end_timestep": steer_end_timestep,
                 "stein_step_size": stein_step_size,
                 "stein_num_steps": stein_num_steps,
                 "stein_bandwidth": stein_bandwidth,
                 "stein_rejected_penalty": stein_rejected_penalty,
-                "num_images_per_prompt": num_images_per_prompt,
+                "num_images_per_prompt": replacement_nipp,
                 "num_inference_steps": restart_num_inference_steps,
                 "guidance_scale": guidance_scale,
-                "latents": restart_latents,
+                "latents": replacement_restart_latents,
                 "output_type": "pil",
                 "return_dict": True,
                 **kwargs,
             }
             if restart_timesteps is not None:
-                steer_sample_kwargs["timesteps"] = restart_timesteps
+                replacement_kwargs["timesteps"] = restart_timesteps
 
-            result, latent_trajectory = steer_sample(**steer_sample_kwargs)
-
-            resampled_images = list(result.images)
-            resampled_rewards = torch.as_tensor(
+            replacement_result, replacement_trajectory = steer_sample(**replacement_kwargs)
+            replacement_images = list(replacement_result.images)
+            replacement_rewards = torch.as_tensor(
                 get_reward_function(
                     reward_name=guidance_reward_fn,
-                    images=resampled_images,
-                    prompts=reward_prompts,
+                    images=replacement_images,
+                    prompts=replacement_reward_prompts,
                     metric_to_chase=metric_to_chase or "overall_score",
                 ),
                 dtype=torch.float32,
             )
-            resampled_latents = latent_trajectory[-1]
+            replacement_final_latents = replacement_trajectory[-1]
 
-            images = [*accepted_images_pool, *resampled_images]
-            rewards = torch.cat(
-                [
-                    accepted_pool_rewards if accepted_pool_rewards is not None else torch.empty(0, dtype=torch.float32),
-                    resampled_rewards,
-                ],
-                dim=0,
-            )
-            final_latents = torch.cat([accepted_pool, resampled_latents], dim=0)
-            use_stein = True
+            # Keep better samples between weak originals and regenerated candidates.
+            weak_indices = torch.where(weak_mask)[0]
+            keep_new = replacement_rewards > improved_rewards[weak_mask]
+            if bool(keep_new.any()):
+                for j in range(weak_count):
+                    if bool(keep_new[j].item()):
+                        idx = int(weak_indices[j].item())
+                        improved_rewards[idx] = replacement_rewards[j]
+                        improved_latents[idx] = replacement_final_latents[j]
+                        improved_images[idx] = replacement_images[j]
+
+        images = [*accepted_images_pool, *improved_images]
+        rewards = torch.cat(
+            [
+                accepted_pool_rewards if accepted_pool_rewards is not None else torch.empty(0, dtype=torch.float32),
+                improved_rewards,
+            ],
+            dim=0,
+        )
+        final_latents = torch.cat([accepted_pool, improved_latents], dim=0)
 
         current_particle_count = max(int(rewards.shape[0]), 1)
         best_reward = float(rewards.max().item())
@@ -694,11 +766,13 @@ def iterative_sample_with_stein(
         if mean_reward > best_mean_reward:
             best_mean_reward = mean_reward
 
-        # Update threshold after each (re)sampled loop; this drives the next loop split.
         running_base_threshold = best_mean_reward + std_reward / float(current_particle_count)
         threshold = running_base_threshold
 
         accept_mask = rewards >= threshold
+        if not bool(accept_mask.any()):
+            best_idx = int(torch.argmax(rewards).item())
+            accept_mask[best_idx] = True
         reject_mask = ~accept_mask
 
         accepted_latents = final_latents[accept_mask]
@@ -723,16 +797,13 @@ def iterative_sample_with_stein(
 
         print(
             f"loop={loop_idx + 1}/{num_loops} "
-            f"use_stein={use_stein} "
             f"best_reward={best_reward:.4f} "
             f"mean_reward={mean_reward:.4f} "
             f"std_reward={std_reward:.4f} "
             f"min_reward={min_reward:.4f} "
             f"threshold={threshold:.4f} "
             f"accepted={accepted_latents.shape[0]} "
-            f"rejected={rejected_latents.shape[0]} "
-            f"accepted_pool={0 if accepted_pool is None else accepted_pool.shape[0]} "
-            f"rejected_pool={0 if rejected_pool is None else rejected_pool.shape[0]}"
+            f"rejected={rejected_latents.shape[0]}"
         )
 
         if early_stop_epsilon is not None:
