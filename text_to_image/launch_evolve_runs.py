@@ -124,6 +124,10 @@ def main(args: argparse.Namespace) -> None:
             guidance_reward_fn=args.guidance_reward_fn,
             metric_to_chase=args.metric_to_chase,
             early_stop_epsilon=args.early_stop_epsilon,
+            save_timestep_grids=args.save_timestep_grids,
+            timestep_grid_stride=args.timestep_grid_stride,
+            timestep_grid_output_dir=prompt_output_dir / "timestep_grids",
+            save_warmup_timestep_grid=args.save_warmup_timestep_grid,
         )
         elapsed_seconds = (datetime.now() - start_time).total_seconds()
 
@@ -176,6 +180,9 @@ def main(args: argparse.Namespace) -> None:
             "thresholds": [float(x) for x in loop_out.get("thresholds", [])],
             "loop_stats": loop_stats,
             "final_saved_images": int(saved_images_count),
+            "timestep_grids_enabled": bool(args.save_timestep_grids),
+            "timestep_grid_stride": int(args.timestep_grid_stride),
+            "timestep_grid_saved_loops": int(len(loop_out.get("timestep_grid_manifests", []) or [])),
         }
 
         per_prompt_rows.append(row)
@@ -243,6 +250,21 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--guidance_reward_fn", type=str, default="ImageReward")
     parser.add_argument("--metric_to_chase", type=str, default=None)
     parser.add_argument("--early_stop_epsilon", type=float, default=1e-5)
+    parser.add_argument("--save_timestep_grids", action="store_true", default=False)
+    parser.add_argument("--timestep_grid_stride", type=int, default=5)
+    parser.add_argument(
+        "--save_warmup_timestep_grid",
+        dest="save_warmup_timestep_grid",
+        action="store_true",
+        help="Save warmup timestep grids as loop_000.",
+    )
+    parser.add_argument(
+        "--no_save_warmup_timestep_grid",
+        dest="save_warmup_timestep_grid",
+        action="store_false",
+        help="Disable warmup timestep grid export.",
+    )
+    parser.set_defaults(save_warmup_timestep_grid=True)
 
     return parser.parse_args()
 

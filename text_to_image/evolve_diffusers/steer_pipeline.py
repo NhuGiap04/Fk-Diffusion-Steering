@@ -1,10 +1,14 @@
 import inspect
+import json
+import math
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
 from diffusers.image_processor import PipelineImageInput
+from PIL import Image
 
-from .pipeline_sdxl import BaseSDXL, get_scheduler_sigmas_for_timesteps
+from .pipeline_sdxl import BaseSDXL, get_scheduler_sigmas_for_timesteps, latent_to_decode
 from .rewards import get_reward_function
 
 
@@ -319,6 +323,96 @@ def _scheduler_supports_custom_timesteps(model: BaseSDXL) -> bool:
     return "timesteps" in set(inspect.signature(model.scheduler.set_timesteps).parameters.keys())
 
 
+@torch.no_grad()
+def _decode_latents_to_pil_images(
+    model: BaseSDXL,
+    latents: torch.Tensor,
+) -> List[Any]:
+    """Decode latent batches to PIL images using the pipeline VAE path."""
+    if latents.ndim != 4:
+        raise ValueError(f"Expected latents with shape [B, C, H, W], got {tuple(latents.shape)}")
+    if latents.shape[0] == 0:
+        return []
+
+    execution_device = next(model.unet.parameters()).device
+    latents_on_device = latents.to(device=execution_device)
+    decoded = latent_to_decode(model=model, output_type="pt", latents=latents_on_device)
+    return list(model.image_processor.postprocess(decoded, output_type="pil"))
+
+
+def _make_image_grid(images: List[Any]) -> Any:
+    """Tile images into a compact grid preserving particle order."""
+    if len(images) == 0:
+        raise ValueError("Cannot build a grid from an empty image list")
+
+    base_images = [img.convert("RGB") for img in images]
+    cell_width, cell_height = base_images[0].size
+    ncols = min(4, len(base_images))
+    nrows = math.ceil(len(base_images) / ncols)
+
+    grid = Image.new("RGB", (ncols * cell_width, nrows * cell_height))
+    for image_idx, image in enumerate(base_images):
+        if image.size != (cell_width, cell_height):
+            image = image.resize((cell_width, cell_height))
+        x_offset = (image_idx % ncols) * cell_width
+        y_offset = (image_idx // ncols) * cell_height
+        grid.paste(image, (x_offset, y_offset))
+
+    return grid
+
+
+@torch.no_grad()
+def _save_timestep_grid_sequence(
+    model: BaseSDXL,
+    *,
+    latent_trajectory: List[torch.Tensor],
+    output_dir: Path,
+    timestep_stride: int,
+    static_images: Optional[List[Any]] = None,
+    loop_name: str,
+) -> Dict[str, Any]:
+    """Save per-timestep particle grids and write a manifest for one loop."""
+    if timestep_stride <= 0:
+        raise ValueError("timestep_stride must be > 0")
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    static_images = list(static_images or [])
+    saved_step_indices: List[int] = []
+
+    total_timesteps = len(latent_trajectory)
+    dynamic_particles = int(latent_trajectory[0].shape[0]) if total_timesteps > 0 else 0
+
+    for step_idx, step_latents in enumerate(latent_trajectory):
+        is_last_step = step_idx == total_timesteps - 1
+        if (step_idx % timestep_stride) != 0 and not is_last_step:
+            continue
+
+        dynamic_images = _decode_latents_to_pil_images(model=model, latents=step_latents)
+        frame_images = [*static_images, *dynamic_images]
+        if len(frame_images) == 0:
+            continue
+
+        frame_idx = len(saved_step_indices)
+        grid_image = _make_image_grid(frame_images)
+        grid_image.save(output_dir / f"frame_{frame_idx:05d}.png")
+        saved_step_indices.append(step_idx)
+
+    manifest = {
+        "loop_name": loop_name,
+        "total_timesteps": int(total_timesteps),
+        "timestep_stride": int(timestep_stride),
+        "saved_frames": int(len(saved_step_indices)),
+        "saved_step_indices": [int(i) for i in saved_step_indices],
+        "static_particles": int(len(static_images)),
+        "dynamic_particles": int(dynamic_particles),
+        "full_pool_particles": int(len(static_images) + dynamic_particles),
+    }
+    with open(output_dir / "manifest.json", "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+    return manifest
+
+
 def _randn_like_with_generator(
     x: torch.Tensor,
     generator: Optional[Union[torch.Generator, List[torch.Generator]]],
@@ -476,6 +570,10 @@ def iterative_sample_with_stein(
     guidance_reward_fn: str = "ImageReward",
     metric_to_chase: Optional[str] = None,
     early_stop_epsilon: Optional[float] = None,
+    save_timestep_grids: bool = False,
+    timestep_grid_stride: int = 5,
+    timestep_grid_output_dir: Optional[Union[str, Path]] = None,
+    save_warmup_timestep_grid: bool = True,
     **kwargs: Any,
 ) -> Dict[str, Any]:
     """
@@ -519,6 +617,16 @@ def iterative_sample_with_stein(
     consecutive_small_improvement = 0
     early_stopped = False
     early_stop_reason: Optional[str] = None
+    timestep_grid_manifests: List[Dict[str, Any]] = []
+
+    grid_output_base: Optional[Path] = None
+    if save_timestep_grids:
+        if timestep_grid_stride <= 0:
+            raise ValueError("timestep_grid_stride must be > 0 when saving timestep grids")
+        if timestep_grid_output_dir is None:
+            raise ValueError("timestep_grid_output_dir must be provided when saving timestep grids")
+        grid_output_base = Path(timestep_grid_output_dir)
+        grid_output_base.mkdir(parents=True, exist_ok=True)
 
     # Warmup: sample K particles and build the initial support using warmup mean reward.
     generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
@@ -560,6 +668,17 @@ def iterative_sample_with_stein(
     accepted_pool_rewards = warmup_rewards[warmup_accept_mask].to(dtype=torch.float32).cpu()
     accepted_images_pool = [img for i, img in enumerate(warmup_images) if bool(warmup_accept_mask[i].item())]
     rejected_images_pool = [img for i, img in enumerate(warmup_images) if bool(warmup_reject_mask[i].item())]
+
+    if save_timestep_grids and save_warmup_timestep_grid and grid_output_base is not None:
+        warmup_manifest = _save_timestep_grid_sequence(
+            model=model,
+            latent_trajectory=warmup_trajectory,
+            output_dir=grid_output_base / "loop_000",
+            timestep_stride=timestep_grid_stride,
+            static_images=None,
+            loop_name="loop_000",
+        )
+        timestep_grid_manifests.append(warmup_manifest)
 
     for loop_idx in range(num_loops):
         if accepted_pool is None or accepted_pool.shape[0] == 0:
@@ -646,6 +765,18 @@ def iterative_sample_with_stein(
             dtype=torch.float32,
         )
         improved_latents = latent_trajectory[-1]
+
+        if save_timestep_grids and grid_output_base is not None:
+            loop_folder = f"loop_{loop_idx + 1:03d}"
+            loop_manifest = _save_timestep_grid_sequence(
+                model=model,
+                latent_trajectory=latent_trajectory,
+                output_dir=grid_output_base / loop_folder,
+                timestep_stride=timestep_grid_stride,
+                static_images=accepted_images_pool,
+                loop_name=loop_folder,
+            )
+            timestep_grid_manifests.append(loop_manifest)
 
         images = [*accepted_images_pool, *improved_images]
         rewards = torch.cat(
@@ -759,6 +890,8 @@ def iterative_sample_with_stein(
         "early_stopped": early_stopped,
         "early_stop_reason": early_stop_reason,
         "completed_loops": len(all_rewards),
+        "timestep_grid_manifests": timestep_grid_manifests,
+        "timestep_grid_output_dir": str(grid_output_base) if grid_output_base is not None else None,
     }
 
 

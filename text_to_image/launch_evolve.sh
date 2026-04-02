@@ -16,5 +16,8 @@ python launch_evolve_runs.py \
   --stein_weight_temperature 1.0 \
   --stein_langevin_lambda 1.0 \
   --stein_num_steps 10 \
+  --save_timestep_grids \
+  --timestep_grid_stride 5 \
+  --save_warmup_timestep_grid \
   --early_stop_epsilon 1e-4 \
   --output_dir benchmark_ir_outputs_evolve
