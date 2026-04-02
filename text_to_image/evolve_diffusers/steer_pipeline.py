@@ -8,10 +8,11 @@ from .pipeline_sdxl import BaseSDXL, get_scheduler_sigmas_for_timesteps
 from .rewards import get_reward_function
 
 
-def score_log_prob_reward(
+def stein_variational_vector_field(
     x_t: torch.Tensor,
     support_x0: torch.Tensor,
     sigma_t: Union[float, torch.Tensor],
+    temperature: float = 1.0,
     eps: float = 1e-8,
 ) -> torch.Tensor:
     """
@@ -36,6 +37,10 @@ def score_log_prob_reward(
     dtype = x_t.dtype
     support_x0 = support_x0.to(device=device, dtype=dtype)
 
+    temperature_tensor = torch.as_tensor(temperature, device=device, dtype=dtype)
+    if torch.any(temperature_tensor <= 0):
+        raise ValueError("temperature must be > 0")
+
     sigma_t_tensor: torch.Tensor = torch.as_tensor(sigma_t, device=device, dtype=dtype)
     alpha_bar_t = 1.0 / torch.clamp(1.0 + sigma_t_tensor * sigma_t_tensor, min=eps)
     sqrt_alpha_bar_t = torch.sqrt(torch.clamp(alpha_bar_t, min=eps))
@@ -45,45 +50,11 @@ def score_log_prob_reward(
     delta = x_t[:, None, :] - means[None, :, :]
     sq_dist = (delta**2).sum(dim=-1)
 
-    log_w = -0.5 * sq_dist / var_t
+    log_w = -0.5 * sq_dist / (temperature_tensor * var_t)
     w = torch.softmax(log_w, dim=1)
 
     component_scores = -delta / var_t
     return (w[:, :, None] * component_scores).sum(dim=1)
-
-
-def stein_variational_vector_field(
-    x: torch.Tensor,
-    score: torch.Tensor,
-    bandwidth: Optional[float] = None,
-    eps: float = 1e-8,
-) -> torch.Tensor:
-    """Compute the empirical SVGD vector field for particle updates."""
-    if x.ndim != 2 or score.ndim != 2:
-        raise ValueError("x and score must have shape [N, D]")
-    if x.shape != score.shape:
-        raise ValueError("x and score must have the same shape")
-
-    n, _ = x.shape
-    if n == 0:
-        return torch.empty_like(x)
-
-    diff = x[:, None, :] - x[None, :, :]
-    sq_dist = (diff**2).sum(dim=-1)
-
-    if bandwidth is None:
-        off_diag = sq_dist[~torch.eye(n, dtype=torch.bool, device=x.device)]
-        if off_diag.numel() == 0:
-            h = torch.tensor(1.0, device=x.device, dtype=x.dtype)
-        else:
-            h = torch.median(off_diag).clamp_min(eps)
-    else:
-        h = torch.as_tensor(bandwidth, device=x.device, dtype=x.dtype).clamp_min(eps)
-
-    k_mat = torch.exp(-sq_dist / h)
-    attractive = k_mat.transpose(0, 1) @ score
-    repulsive = (-2.0 / h) * (k_mat[:, :, None] * diff).sum(dim=0)
-    return (attractive + repulsive) / float(n)
 
 
 @torch.no_grad()
@@ -91,13 +62,15 @@ def stein_step(
     x_t: torch.Tensor,
     accepted_x0: torch.Tensor,
     sigma_t: Union[float, torch.Tensor],
-    rejected_x0: Optional[torch.Tensor] = None,
     step_size: float = 0.05,
     step_index: int = 0,
-    rejected_penalty: float = 0.0,
-    bandwidth: Optional[float] = None,
+    weight_temperature: float = 1.0,
+    langevin_lambda: float = 1.0,
+    generator: Optional[Union[torch.Generator, List[torch.Generator]]] = None,
+    eps: float = 1e-8,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
-    """One SVGD update with schedule epsilon_t = a / (t + 1)^0.55."""
+    """One Langevin corrector step using accepted-only Stein score estimates."""
+
     if x_t.ndim < 2 or accepted_x0.ndim < 2:
         raise ValueError("x_t and accepted_x0 must have at least 2 dims [B, ...]")
     if x_t.shape[1:] != accepted_x0.shape[1:]:
@@ -105,13 +78,10 @@ def stein_step(
             "x_t and accepted_x0 must have matching non-batch dimensions "
             f"(got {x_t.shape[1:]} vs {accepted_x0.shape[1:]})"
         )
-    if rejected_x0 is not None and rejected_x0.ndim < 2:
-        raise ValueError("rejected_x0 must have at least 2 dims [B, ...]")
-    if rejected_x0 is not None and x_t.shape[1:] != rejected_x0.shape[1:]:
-        raise ValueError(
-            "x_t and rejected_x0 must have matching non-batch dimensions "
-            f"(got {x_t.shape[1:]} vs {rejected_x0.shape[1:]})"
-        )
+    if step_size < 0:
+        raise ValueError("step_size must be >= 0")
+    if langevin_lambda < 0:
+        raise ValueError("langevin_lambda must be >= 0")
     if step_index < 0:
         raise ValueError("step_index must be >= 0")
 
@@ -120,26 +90,22 @@ def stein_step(
     x_flat = x_t.reshape(x_t.shape[0], -1).to(dtype=torch.float32)
     accepted_flat = accepted_x0.reshape(accepted_x0.shape[0], -1).to(dtype=torch.float32)
 
-    accepted_score = score_log_prob_reward(
+    phi = stein_variational_vector_field(
         x_t=x_flat,
         support_x0=accepted_flat,
         sigma_t=sigma_t,
+        temperature=weight_temperature,
     )
-    accepted_phi = stein_variational_vector_field(x=x_flat, score=accepted_score, bandwidth=bandwidth)
 
-    phi = accepted_phi
-    if rejected_x0 is not None and rejected_x0.shape[0] > 0 and rejected_penalty > 0.0:
-        rejected_flat = rejected_x0.reshape(rejected_x0.shape[0], -1).to(dtype=torch.float32)
-        rejected_score = score_log_prob_reward(
-            x_t=x_flat,
-            support_x0=rejected_flat,
-            sigma_t=sigma_t,
-        )
-        rejected_phi = stein_variational_vector_field(x=x_flat, score=rejected_score, bandwidth=bandwidth)
-        phi = accepted_phi - rejected_penalty * rejected_phi
+    sigma_t_tensor = torch.as_tensor(sigma_t, device=x_flat.device, dtype=x_flat.dtype)
+    alpha_bar_t = 1.0 / torch.clamp(1.0 + sigma_t_tensor * sigma_t_tensor, min=eps)
+    one_minus_alpha_bar_t = torch.clamp(1.0 - alpha_bar_t, min=eps)
+    eta_t = torch.as_tensor(float(step_size), device=x_flat.device, dtype=x_flat.dtype) * one_minus_alpha_bar_t
 
-    scheduled_step_size = float(step_size) / ((float(step_index) + 1.0) ** 0.55)
-    x_next = x_flat + scheduled_step_size * phi
+    omega = _randn_like_with_generator(x_flat, generator)
+    noise_scale = torch.sqrt(torch.clamp(2.0 * eta_t * float(langevin_lambda), min=0.0))
+    x_next = x_flat + eta_t / (step_index + 1) * phi + noise_scale * omega
+
     return x_next.to(dtype=out_dtype).reshape(x_shape), phi.to(dtype=out_dtype).reshape(x_shape)
 
 
@@ -149,7 +115,6 @@ def steer_sample(
     prompt: Union[str, List[str]],
     *,
     accepted_x0: Optional[torch.Tensor] = None,
-    rejected_x0: Optional[torch.Tensor] = None,
     prompt_2: Optional[Union[str, List[str]]] = None,
     height: Optional[int] = None,
     width: Optional[int] = None,
@@ -172,8 +137,8 @@ def steer_sample(
     steer_end_timestep: int = 0,
     stein_step_size: float = 0.05,
     stein_num_steps: int = 1,
-    stein_bandwidth: Optional[float] = None,
-    stein_rejected_penalty: float = 0.0,
+    stein_weight_temperature: float = 1.0,
+    stein_langevin_lambda: float = 1.0,
     callback_on_step_end: Optional[Any] = None,
     callback_on_step_end_tensor_inputs: Optional[List[str]] = None,
     **kwargs: Any,
@@ -190,6 +155,10 @@ def steer_sample(
     """
     if stein_num_steps <= 0:
         raise ValueError("stein_num_steps must be > 0")
+    if stein_weight_temperature <= 0:
+        raise ValueError("stein_weight_temperature must be > 0")
+    if stein_langevin_lambda < 0:
+        raise ValueError("stein_langevin_lambda must be >= 0")
 
     if callback_on_step_end_tensor_inputs is None:
         callback_on_step_end_tensor_inputs = ["latents"]
@@ -236,22 +205,16 @@ def steer_sample(
                     device=current_latents.device,
                     dtype=current_latents.dtype,
                 )
-                rejected_particles: Optional[torch.Tensor] = None
-                if rejected_x0 is not None and rejected_x0.shape[0] > 0:
-                    rejected_particles = rejected_x0.to(
-                        device=current_latents.device,
-                        dtype=current_latents.dtype,
-                    )
                 for _ in range(stein_num_steps):
                     current_latents, _ = stein_step(
                         x_t=current_latents,
                         accepted_x0=accepted_particles,
-                        rejected_x0=rejected_particles,
                         sigma_t=sigma_t,
                         step_size=stein_step_size,
                         step_index=stein_update_idx,
-                        rejected_penalty=stein_rejected_penalty,
-                        bandwidth=stein_bandwidth,
+                        weight_temperature=stein_weight_temperature,
+                        langevin_lambda=stein_langevin_lambda,
+                        generator=generator,
                     )
                     stein_update_idx += 1
 
@@ -427,10 +390,9 @@ def split_samples(
     steer_end_timestep: int = 0,
     stein_step_size: float = 0.05,
     stein_num_steps: int = 1,
-    stein_bandwidth: Optional[float] = None,
-    stein_rejected_penalty: float = 0.0,
+    stein_weight_temperature: float = 1.0,
+    stein_langevin_lambda: float = 1.0,
     accepted_x0: Optional[torch.Tensor] = None,
-    rejected_x0: Optional[torch.Tensor] = None,
     num_inference_steps: int = 50,
     guidance_scale: float = 5.0,
     **kwargs: Any,
@@ -449,13 +411,12 @@ def split_samples(
         model=model,
         prompt=generation_prompt,
         accepted_x0=accepted_x0,
-        rejected_x0=rejected_x0,
         steer_start_timestep=steer_start_timestep,
         steer_end_timestep=steer_end_timestep,
         stein_step_size=stein_step_size,
         stein_num_steps=stein_num_steps,
-        stein_bandwidth=stein_bandwidth,
-        stein_rejected_penalty=stein_rejected_penalty,
+        stein_weight_temperature=stein_weight_temperature,
+        stein_langevin_lambda=stein_langevin_lambda,
         num_images_per_prompt=num_images_per_prompt,
         num_inference_steps=num_inference_steps,
         guidance_scale=guidance_scale,
@@ -508,8 +469,8 @@ def iterative_sample_with_stein(
     steer_end_timestep: int = 0,
     stein_step_size: float = 0.05,
     stein_num_steps: int = 1,
-    stein_bandwidth: Optional[float] = None,
-    stein_rejected_penalty: float = 0.0,
+    stein_weight_temperature: float = 1.0,
+    stein_langevin_lambda: float = 1.0,
     num_inference_steps: int = 50,
     guidance_scale: float = 5.0,
     guidance_reward_fn: str = "ImageReward",
@@ -655,13 +616,12 @@ def iterative_sample_with_stein(
             "model": model,
             "prompt": generation_prompt,
             "accepted_x0": accepted_pool,
-            "rejected_x0": rejected_pool,
             "steer_start_timestep": steer_start_timestep,
             "steer_end_timestep": steer_end_timestep,
             "stein_step_size": stein_step_size,
             "stein_num_steps": stein_num_steps,
-            "stein_bandwidth": stein_bandwidth,
-            "stein_rejected_penalty": stein_rejected_penalty,
+            "stein_weight_temperature": stein_weight_temperature,
+            "stein_langevin_lambda": stein_langevin_lambda,
             "num_images_per_prompt": num_images_per_prompt,
             "num_inference_steps": restart_num_inference_steps,
             "guidance_scale": guidance_scale,
@@ -706,7 +666,7 @@ def iterative_sample_with_stein(
         if mean_reward > best_mean_reward:
             best_mean_reward = mean_reward
 
-        running_threshold = best_mean_reward + std_reward / float(current_particle_count)
+        running_threshold = best_mean_reward
         threshold = running_threshold
 
         accept_mask = rewards >= threshold

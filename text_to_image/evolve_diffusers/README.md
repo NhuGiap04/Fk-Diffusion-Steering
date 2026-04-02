@@ -25,8 +25,8 @@ From `evolve_diffusers.__init__`:
 `steer_pipeline.py` contains a standalone steering path for particle trajectories:
 
 - `score_log_prob_reward`: approximates score from accepted clean samples.
-- `stein_variational_vector_field`: computes empirical SVGD update field.
-- `stein_step`: applies one Stein update.
+- `stein_variational_vector_field`: computes the temperature-weighted Stein VVF score from accepted particles.
+- `stein_step`: applies a Langevin corrector update using accepted-only Stein VVF.
 - `steer_sample`: runs reverse diffusion and applies Stein updates in a timestep window.
 - `split_samples`: runs one sampling pass, evaluates rewards, and splits accepted/rejected particles.
 - `iterative_sample_with_stein`: repeats sampling loops and reuses accepted particles for steering.
@@ -72,7 +72,8 @@ result, latent_trajectory = steer_sample(
     steer_start_timestep=160,
     steer_end_timestep=20,
     stein_step_size=0.04,
-    stein_bandwidth=None,
+    stein_weight_temperature=1.0,
+    stein_langevin_lambda=1.0,
     # guidance_scale defaults to 5.0, matching BaseSDXL default CFG.
     num_inference_steps=50,
     output_type="pil",
@@ -96,6 +97,8 @@ loop_out = iterative_sample_with_stein(
     steer_start_timestep=160,
     steer_end_timestep=20,
     stein_step_size=0.04,
+    stein_weight_temperature=1.0,
+    stein_langevin_lambda=1.0,
     guidance_scale=5.0,
     guidance_reward_fn="ImageReward",
     num_inference_steps=50,

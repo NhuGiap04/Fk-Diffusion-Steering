@@ -117,8 +117,8 @@ def main(args: argparse.Namespace) -> None:
             steer_end_timestep=args.steer_end_timestep,
             stein_step_size=args.stein_step_size,
             stein_num_steps=args.stein_num_steps,
-            stein_bandwidth=args.stein_bandwidth,
-            stein_rejected_penalty=args.stein_rejected_penalty,
+            stein_weight_temperature=args.stein_weight_temperature,
+            stein_langevin_lambda=args.stein_langevin_lambda,
             num_inference_steps=args.num_inference_steps,
             guidance_scale=args.guidance_scale,
             guidance_reward_fn=args.guidance_reward_fn,
@@ -237,8 +237,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--steer_end_timestep", type=int, default=150)
     parser.add_argument("--stein_step_size", type=float, default=1e-6)
     parser.add_argument("--stein_num_steps", type=int, default=10)
-    parser.add_argument("--stein_bandwidth", type=float, default=None)
-    parser.add_argument("--stein_rejected_penalty", type=float, default=0.1)
+    parser.add_argument("--stein_weight_temperature", type=float, default=1.0)
+    parser.add_argument("--stein_langevin_lambda", type=float, default=1.0)
 
     parser.add_argument("--guidance_reward_fn", type=str, default="ImageReward")
     parser.add_argument("--metric_to_chase", type=str, default=None)

@@ -13,7 +13,8 @@ python launch_evolve_runs.py \
   --steer_start_timestep 400 \
   --steer_end_timestep 160 \
   --stein_step_size 0.01 \
-  --stein_rejected_penalty 0.2 \
+  --stein_weight_temperature 1.0 \
+  --stein_langevin_lambda 1.0 \
   --stein_num_steps 10 \
   --early_stop_epsilon 1e-4 \
   --output_dir benchmark_ir_outputs_evolve
