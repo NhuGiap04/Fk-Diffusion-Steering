@@ -10,12 +10,12 @@ python launch_evolve_runs.py \
   --num_inference_steps 50 \
   --guidance_scale 5.0 \
   --guidance_reward_fn ImageReward \
-  --steer_start_timestep 800 \
+  --steer_start_timestep 600 \
   --steer_end_timestep 300 \
   --stein_step_size 0.01 \
   --stein_weight_temperature 1.0 \
   --stein_langevin_lambda 1.0 \
-  --stein_num_steps 10 \
+  --stein_num_steps 1 \
   --save_timestep_grids \
   --timestep_grid_stride 5 \
   --save_warmup_timestep_grid \

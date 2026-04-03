@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 import torch
 from diffusers.image_processor import PipelineImageInput
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from .pipeline_sdxl import BaseSDXL, get_scheduler_sigmas_for_timesteps, latent_to_decode
 from .rewards import get_reward_function
@@ -146,7 +146,7 @@ def steer_sample(
     callback_on_step_end: Optional[Any] = None,
     callback_on_step_end_tensor_inputs: Optional[List[str]] = None,
     **kwargs: Any,
-) -> Tuple[Any, List[torch.Tensor]]:
+) -> Tuple[Any, List[torch.Tensor], List[int]]:
     """
     Prompt-conditioned SDXL sampling with optional Stein updates in the denoising loop.
 
@@ -154,8 +154,9 @@ def steer_sample(
     `callback_on_step_end`, rather than using a toy DDPM `p_sample` API.
 
     Returns:
-        Tuple `(pipeline_output, latent_trajectory)`.
+        Tuple `(pipeline_output, latent_trajectory, trajectory_timesteps)`.
         `latent_trajectory` stores one latent tensor per denoising step (CPU).
+        `trajectory_timesteps` stores the matching scheduler timestep per step.
     """
     if stein_num_steps <= 0:
         raise ValueError("stein_num_steps must be > 0")
@@ -189,16 +190,17 @@ def steer_sample(
         t_lo = min(steer_start_timestep, steer_end_timestep)
 
     latent_trajectory: List[torch.Tensor] = []
+    trajectory_timesteps: List[int] = []
     stein_update_idx = 0
 
     def _combined_step_callback(pipe, step_idx: int, t, callback_kwargs: Dict[str, Any]):
         nonlocal stein_update_idx
         callback_updates: Dict[str, Any] = {}
         current_latents = callback_kwargs["latents"]
+        timestep_value = int(t.item()) if isinstance(t, torch.Tensor) else int(t)
 
         if use_stein:
             assert accepted_x0 is not None
-            timestep_value = int(t.item()) if isinstance(t, torch.Tensor) else int(t)
             if t_lo <= timestep_value <= t_hi:
                 sigma_t = get_scheduler_sigmas_for_timesteps(
                     scheduler=pipe.scheduler,
@@ -231,6 +233,7 @@ def steer_sample(
                 current_latents = callback_updates.pop("latents", current_latents)
 
         latent_trajectory.append(current_latents.detach().cpu())
+        trajectory_timesteps.append(timestep_value)
         callback_updates["latents"] = current_latents
         return callback_updates
 
@@ -264,7 +267,7 @@ def steer_sample(
         **kwargs,
     )
 
-    return result, latent_trajectory
+    return result, latent_trajectory, trajectory_timesteps
 
 
 def _resolve_prompt_and_particles(
@@ -361,53 +364,120 @@ def _make_image_grid(images: List[Any]) -> Any:
     return grid
 
 
-@torch.no_grad()
-def _save_timestep_grid_sequence(
-    model: BaseSDXL,
+def _add_title_to_image(image: Any, title: str) -> Any:
+    """Add a title strip above an image for easier visual comparison."""
+    base_image = image.convert("RGB")
+    title_height = 24
+    titled = Image.new("RGB", (base_image.width, base_image.height + title_height), color=(24, 24, 24))
+    titled.paste(base_image, (0, title_height))
+
+    draw = ImageDraw.Draw(titled)
+    draw.text((8, 6), title, fill=(240, 240, 240), font=ImageFont.load_default())
+    return titled
+
+
+def _select_timestep_indices(
+    trajectory_timesteps: List[int],
     *,
-    latent_trajectory: List[torch.Tensor],
-    output_dir: Path,
+    timestep_min: int,
+    timestep_max: int,
     timestep_stride: int,
-    static_images: Optional[List[Any]] = None,
-    loop_name: str,
-) -> Dict[str, Any]:
-    """Save per-timestep particle grids and write a manifest for one loop."""
+) -> List[int]:
+    """Select denoising step indices that fall within a timestep window."""
     if timestep_stride <= 0:
         raise ValueError("timestep_stride must be > 0")
 
-    output_dir.mkdir(parents=True, exist_ok=True)
+    in_range_indices = [
+        idx
+        for idx, timestep in enumerate(trajectory_timesteps)
+        if timestep_min <= int(timestep) <= timestep_max
+    ]
+    if len(in_range_indices) == 0:
+        return []
+
+    selected: List[int] = []
+    for in_range_pos, step_idx in enumerate(in_range_indices):
+        is_last = in_range_pos == len(in_range_indices) - 1
+        if (in_range_pos % timestep_stride) != 0 and not is_last:
+            continue
+        selected.append(step_idx)
+    return selected
+
+
+@torch.no_grad()
+def _save_timestep_views_for_loop(
+    model: BaseSDXL,
+    *,
+    latent_trajectory: List[torch.Tensor],
+    trajectory_timesteps: List[int],
+    loop_output_dir: Path,
+    by_timestep_output_dir: Path,
+    timestep_stride: int,
+    timestep_min: int,
+    timestep_max: int,
+    static_images: Optional[List[Any]] = None,
+    loop_name: str,
+) -> Dict[str, Any]:
+    """Save titled timestep views for one loop in by-loop and by-timestep layouts."""
+    if len(latent_trajectory) != len(trajectory_timesteps):
+        raise ValueError(
+            "latent_trajectory and trajectory_timesteps must have the same length "
+            f"(got {len(latent_trajectory)} vs {len(trajectory_timesteps)})"
+        )
+
+    if timestep_min > timestep_max:
+        raise ValueError(f"Invalid timestep window [{timestep_min}, {timestep_max}]")
+
+    loop_output_dir.mkdir(parents=True, exist_ok=True)
+    by_timestep_output_dir.mkdir(parents=True, exist_ok=True)
     static_images = list(static_images or [])
     saved_step_indices: List[int] = []
+    saved_timestep_values: List[int] = []
 
     total_timesteps = len(latent_trajectory)
     dynamic_particles = int(latent_trajectory[0].shape[0]) if total_timesteps > 0 else 0
+    selected_step_indices = _select_timestep_indices(
+        trajectory_timesteps,
+        timestep_min=timestep_min,
+        timestep_max=timestep_max,
+        timestep_stride=timestep_stride,
+    )
 
-    for step_idx, step_latents in enumerate(latent_trajectory):
-        is_last_step = step_idx == total_timesteps - 1
-        if (step_idx % timestep_stride) != 0 and not is_last_step:
-            continue
-
+    for frame_idx, step_idx in enumerate(selected_step_indices):
+        step_latents = latent_trajectory[step_idx]
+        timestep_value = int(trajectory_timesteps[step_idx])
         dynamic_images = _decode_latents_to_pil_images(model=model, latents=step_latents)
         frame_images = [*static_images, *dynamic_images]
         if len(frame_images) == 0:
             continue
 
-        frame_idx = len(saved_step_indices)
-        grid_image = _make_image_grid(frame_images)
-        grid_image.save(output_dir / f"frame_{frame_idx:05d}.png")
+        frame_title = f"{loop_name} | timestep={timestep_value} | frame={frame_idx:03d}"
+        grid_image = _add_title_to_image(_make_image_grid(frame_images), frame_title)
+
+        loop_filename = f"frame_{frame_idx:05d}_t{timestep_value:04d}.png"
+        grid_image.save(loop_output_dir / loop_filename)
+
+        timestep_dir = by_timestep_output_dir / f"timestep_{timestep_value:04d}"
+        timestep_dir.mkdir(parents=True, exist_ok=True)
+        grid_image.save(timestep_dir / f"{loop_name}.png")
+
         saved_step_indices.append(step_idx)
+        saved_timestep_values.append(timestep_value)
 
     manifest = {
         "loop_name": loop_name,
         "total_timesteps": int(total_timesteps),
         "timestep_stride": int(timestep_stride),
+        "timestep_range": [int(timestep_min), int(timestep_max)],
         "saved_frames": int(len(saved_step_indices)),
         "saved_step_indices": [int(i) for i in saved_step_indices],
+        "saved_timestep_values": [int(t) for t in saved_timestep_values],
         "static_particles": int(len(static_images)),
         "dynamic_particles": int(dynamic_particles),
         "full_pool_particles": int(len(static_images) + dynamic_particles),
+        "loop_output_dir": str(loop_output_dir),
     }
-    with open(output_dir / "manifest.json", "w", encoding="utf-8") as f:
+    with open(loop_output_dir / "manifest.json", "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2)
 
     return manifest
@@ -501,7 +571,7 @@ def split_samples(
         num_particles=num_particles,
     )
 
-    result, latent_trajectory = steer_sample(
+    result, latent_trajectory, trajectory_timesteps = steer_sample(
         model=model,
         prompt=generation_prompt,
         accepted_x0=accepted_x0,
@@ -543,6 +613,7 @@ def split_samples(
     return {
         "result": result,
         "latent_trajectory": latent_trajectory,
+        "trajectory_timesteps": trajectory_timesteps,
         "rewards": rewards,
         "accepted_x0": accepted_latents,
         "rejected_x0": rejected_latents,
@@ -573,6 +644,7 @@ def iterative_sample_with_stein(
     save_timestep_grids: bool = False,
     timestep_grid_stride: int = 5,
     timestep_grid_output_dir: Optional[Union[str, Path]] = None,
+    final_denoise_timestep: Optional[int] = None,
     save_warmup_timestep_grid: bool = True,
     **kwargs: Any,
 ) -> Dict[str, Any]:
@@ -585,8 +657,8 @@ def iterative_sample_with_stein(
        - steer rejected particles from `steer_start_timestep` to `steer_end_timestep`
          using the accepted pool,
        - evaluate rewards,
-             - resample weak population from good population via multinomial selection
-                 weighted by good rewards,
+                        - resample the full particle pool via multinomial selection weighted
+                                by final rewards,
        - update threshold and refresh accepted/rejected pools for the next loop.
     3) Optional early stop if reward improvement is below epsilon for 2 consecutive transitions.
     """
@@ -620,6 +692,10 @@ def iterative_sample_with_stein(
     timestep_grid_manifests: List[Dict[str, Any]] = []
 
     grid_output_base: Optional[Path] = None
+    loop_grid_output_dir: Optional[Path] = None
+    timestep_grid_by_value_dir: Optional[Path] = None
+    display_timestep_min: Optional[int] = None
+    display_timestep_max: Optional[int] = None
     if save_timestep_grids:
         if timestep_grid_stride <= 0:
             raise ValueError("timestep_grid_stride must be > 0 when saving timestep grids")
@@ -627,13 +703,25 @@ def iterative_sample_with_stein(
             raise ValueError("timestep_grid_output_dir must be provided when saving timestep grids")
         grid_output_base = Path(timestep_grid_output_dir)
         grid_output_base.mkdir(parents=True, exist_ok=True)
+        loop_grid_output_dir = grid_output_base / "denoising_by_loop"
+        timestep_grid_by_value_dir = grid_output_base / "same_timestep_across_loops"
+        loop_grid_output_dir.mkdir(parents=True, exist_ok=True)
+        timestep_grid_by_value_dir.mkdir(parents=True, exist_ok=True)
+
+        effective_final_denoise_timestep = (
+            int(final_denoise_timestep)
+            if final_denoise_timestep is not None
+            else 0
+        )
+        display_timestep_min = min(int(steer_start_timestep), effective_final_denoise_timestep)
+        display_timestep_max = max(int(steer_start_timestep), effective_final_denoise_timestep)
 
     # Warmup: sample K particles and build the initial support using warmup mean reward.
     generation_prompt, num_images_per_prompt, reward_prompts = _resolve_prompt_and_particles(
         prompt=prompt,
         num_particles=num_particles,
     )
-    warmup_result, warmup_trajectory = steer_sample(
+    warmup_result, warmup_trajectory, warmup_timesteps = steer_sample(
         model=model,
         prompt=generation_prompt,
         num_images_per_prompt=num_images_per_prompt,
@@ -668,13 +756,52 @@ def iterative_sample_with_stein(
     accepted_pool_rewards = warmup_rewards[warmup_accept_mask].to(dtype=torch.float32).cpu()
     accepted_images_pool = [img for i, img in enumerate(warmup_images) if bool(warmup_accept_mask[i].item())]
     rejected_images_pool = [img for i, img in enumerate(warmup_images) if bool(warmup_reject_mask[i].item())]
+    warmup_accepted_count = int(warmup_accept_mask.sum().item())
+    warmup_rejected_count = int(warmup_reject_mask.sum().item())
 
-    if save_timestep_grids and save_warmup_timestep_grid and grid_output_base is not None:
-        warmup_manifest = _save_timestep_grid_sequence(
+    # Warmup initializes pools only; resampling starts after loop 1 completes.
+    warmup_best_reward = float(warmup_rewards.max().item())
+    warmup_mean_reward = float(warmup_rewards.mean().item())
+    warmup_std_reward = float(warmup_rewards.std().item())
+    warmup_min_reward = float(warmup_rewards.min().item())
+    warmup_stats: Dict[str, Any] = {
+        "best_reward": warmup_best_reward,
+        "mean_reward": warmup_mean_reward,
+        "std_reward": warmup_std_reward,
+        "min_reward": warmup_min_reward,
+        "threshold": float(warmup_threshold),
+        "accepted": warmup_accepted_count,
+        "rejected": warmup_rejected_count,
+        "num_particles": int(warmup_rewards.shape[0]),
+    }
+    print(
+        f"warmup "
+        f"best_reward={warmup_best_reward:.4f} "
+        f"mean_reward={warmup_mean_reward:.4f} "
+        f"std_reward={warmup_std_reward:.4f} "
+        f"min_reward={warmup_min_reward:.4f} "
+        f"threshold={warmup_threshold:.4f} "
+        f"accepted={warmup_accepted_count} "
+        f"rejected={warmup_rejected_count}"
+    )
+
+    if (
+        save_timestep_grids
+        and save_warmup_timestep_grid
+        and loop_grid_output_dir is not None
+        and timestep_grid_by_value_dir is not None
+        and display_timestep_min is not None
+        and display_timestep_max is not None
+    ):
+        warmup_manifest = _save_timestep_views_for_loop(
             model=model,
             latent_trajectory=warmup_trajectory,
-            output_dir=grid_output_base / "loop_000",
+            trajectory_timesteps=warmup_timesteps,
+            loop_output_dir=loop_grid_output_dir / "loop_000",
+            by_timestep_output_dir=timestep_grid_by_value_dir,
             timestep_stride=timestep_grid_stride,
+            timestep_min=display_timestep_min,
+            timestep_max=display_timestep_max,
             static_images=None,
             loop_name="loop_000",
         )
@@ -752,7 +879,7 @@ def iterative_sample_with_stein(
         if restart_timesteps is not None:
             steer_sample_kwargs["timesteps"] = restart_timesteps
 
-        result, latent_trajectory = steer_sample(**steer_sample_kwargs)
+        result, latent_trajectory, trajectory_timesteps = steer_sample(**steer_sample_kwargs)
 
         improved_images = list(result.images)
         improved_rewards = torch.as_tensor(
@@ -766,13 +893,23 @@ def iterative_sample_with_stein(
         )
         improved_latents = latent_trajectory[-1]
 
-        if save_timestep_grids and grid_output_base is not None:
+        if (
+            save_timestep_grids
+            and loop_grid_output_dir is not None
+            and timestep_grid_by_value_dir is not None
+            and display_timestep_min is not None
+            and display_timestep_max is not None
+        ):
             loop_folder = f"loop_{loop_idx + 1:03d}"
-            loop_manifest = _save_timestep_grid_sequence(
+            loop_manifest = _save_timestep_views_for_loop(
                 model=model,
                 latent_trajectory=latent_trajectory,
-                output_dir=grid_output_base / loop_folder,
+                trajectory_timesteps=trajectory_timesteps,
+                loop_output_dir=loop_grid_output_dir / loop_folder,
+                by_timestep_output_dir=timestep_grid_by_value_dir,
                 timestep_stride=timestep_grid_stride,
+                timestep_min=display_timestep_min,
+                timestep_max=display_timestep_max,
                 static_images=accepted_images_pool,
                 loop_name=loop_folder,
             )
@@ -814,22 +951,23 @@ def iterative_sample_with_stein(
         accepted_images = [img for i, img in enumerate(images) if bool(accept_mask[i].item())]
         rejected_images = [img for i, img in enumerate(images) if bool(reject_mask[i].item())]
 
-        # Resample weak particles from the good population with probabilities
-        # proportional to good rewards (via softmax), then use this as next rejected pool.
-        weak_count = int(rejected_latents.shape[0])
-        if weak_count > 0 and accepted_latents.shape[0] > 0:
+        # Resample the full particle pool according to final rewards.
+        # This drives the next loop's particles using reward-weighted selection
+        # over all current particles, not only the weak subset.
+        resample_count = int(final_latents.shape[0])
+        if resample_count > 0:
             sampling_probs = torch.softmax(
-                accepted_rewards_for_sampling.to(device=accepted_latents.device),
+                rewards.to(device=final_latents.device, dtype=torch.float32),
                 dim=0,
             )
             sampled_indices = torch.multinomial(
                 sampling_probs,
-                num_samples=weak_count,
+                num_samples=resample_count,
                 replacement=True,
             )
-            rejected_latents = accepted_latents[sampled_indices].clone()
+            rejected_latents = final_latents[sampled_indices].clone()
             sampled_indices_list = sampled_indices.detach().cpu().tolist()
-            rejected_images = [accepted_images[int(i)] for i in sampled_indices_list]
+            rejected_images = [images[int(i)] for i in sampled_indices_list]
 
         accepted_pool = accepted_latents
         accepted_pool_rewards = accepted_rewards
@@ -875,6 +1013,7 @@ def iterative_sample_with_stein(
         "results": all_results,
         "trajectories": all_trajectories,
         "rewards": all_rewards,
+        "warmup_stats": warmup_stats,
         "thresholds": all_thresholds,
         "accepted": all_accepted,
         "rejected": all_rejected,

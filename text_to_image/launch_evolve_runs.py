@@ -115,6 +115,7 @@ def main(args: argparse.Namespace) -> None:
             num_particles=args.num_particles,
             steer_start_timestep=args.steer_start_timestep,
             steer_end_timestep=args.steer_end_timestep,
+            final_denoise_timestep=args.final_denoise_timestep,
             stein_step_size=args.stein_step_size,
             stein_num_steps=args.stein_num_steps,
             stein_weight_temperature=args.stein_weight_temperature,
@@ -132,16 +133,34 @@ def main(args: argparse.Namespace) -> None:
         elapsed_seconds = (datetime.now() - start_time).total_seconds()
 
         completed_loops = loop_out.get("completed_loops", 0)
+        warmup_stats = loop_out.get("warmup_stats", {})
+
+        loop_stats = []
+        if isinstance(warmup_stats, dict) and warmup_stats:
+            loop_stats.append(
+                {
+                    "phase": "warmup",
+                    "loop": 0,
+                    "num_particles": int(warmup_stats.get("num_particles", 0)),
+                    "mean": float(warmup_stats.get("mean_reward", float("nan"))),
+                    "std": float(warmup_stats.get("std_reward", float("nan"))),
+                    "max": float(warmup_stats.get("best_reward", float("nan"))),
+                    "min": float(warmup_stats.get("min_reward", float("nan"))),
+                    "threshold": float(warmup_stats.get("threshold", float("nan"))),
+                    "accepted": int(warmup_stats.get("accepted", 0)),
+                    "rejected": int(warmup_stats.get("rejected", 0)),
+                }
+            )
+
         if completed_loops == 0:
             final_rewards = torch.empty(0, dtype=torch.float32)
-            loop_stats = []
             final_images: List[Any] = []
         else:
             final_rewards = loop_out["rewards"][-1].detach().cpu().float()
-            loop_stats = []
             for loop_i, rewards_tensor in enumerate(loop_out["rewards"], start=1):
                 loop_rewards = rewards_tensor.detach().cpu().float()
-                stats = tensor_stats(loop_rewards)
+                stats: Dict[str, Any] = dict(tensor_stats(loop_rewards))
+                stats["phase"] = "loop"
                 stats["loop"] = loop_i
                 stats["num_particles"] = int(loop_rewards.numel())
                 loop_stats.append(stats)
@@ -178,6 +197,7 @@ def main(args: argparse.Namespace) -> None:
             "min_reward": final_stats["min"],
             "time_seconds": elapsed_seconds,
             "thresholds": [float(x) for x in loop_out.get("thresholds", [])],
+            "warmup_stats": warmup_stats,
             "loop_stats": loop_stats,
             "final_saved_images": int(saved_images_count),
             "timestep_grids_enabled": bool(args.save_timestep_grids),
@@ -242,6 +262,12 @@ def get_args() -> argparse.Namespace:
 
     parser.add_argument("--steer_start_timestep", type=int, default=400)
     parser.add_argument("--steer_end_timestep", type=int, default=150)
+    parser.add_argument(
+        "--final_denoise_timestep",
+        type=int,
+        default=0,
+        help="Display/export timestep grids only within [steer_start_timestep, final_denoise_timestep]. Defaults to 0 (final denoising timestep / completed image).",
+    )
     parser.add_argument("--stein_step_size", type=float, default=1e-6)
     parser.add_argument("--stein_num_steps", type=int, default=10)
     parser.add_argument("--stein_weight_temperature", type=float, default=1.0)
