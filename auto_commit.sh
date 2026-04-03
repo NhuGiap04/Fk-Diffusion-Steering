@@ -17,7 +17,7 @@ EOF
 
 commit_message=""
 remote="origin"
-branch="evo_v0.1"
+branch="evo_v0.2"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
