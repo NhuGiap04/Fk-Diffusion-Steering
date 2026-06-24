@@ -7,7 +7,7 @@ os.environ.setdefault("USE_FLAX", "0")
 import json
 import numpy as np
 from PIL import Image
-from tqdm import tqdm
+from tqdm.auto import tqdm
 
 import matplotlib.pyplot as plt
 
@@ -110,6 +110,7 @@ def main(args):
         )
 
     pipe.scheduler = DDIMScheduler.from_config(pipe.scheduler.config)
+    pipe.set_progress_bar_config(disable=True)
 
     # set device
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -162,6 +163,8 @@ def main(args):
         total=len(prompt_data),
         desc=f"seed {args.seed}",
         unit="prompt",
+        dynamic_ncols=True,
+        leave=True,
     )
     for prompt_idx, item in prompt_progress:
         prompt = [item["prompt"]] * args.num_particles
@@ -298,7 +301,6 @@ def get_args():
     parser.add_argument("--potential_type", type=str, default="diff")
 
     args = parser.parse_args()
-    print(args.adaptive_resampling)
 
     if args.prompt_path == "geneval_metadata.jsonl":
         args.save_individual_images = True
@@ -356,6 +358,6 @@ def get_args():
 
 if __name__ == "__main__":
     args = get_args()
-    for seed in tqdm([42, 43, 44], desc="seeds", unit="seed"):
+    for seed in [42]:
         args.seed = seed
         main(args)

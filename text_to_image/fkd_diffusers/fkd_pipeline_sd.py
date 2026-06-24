@@ -478,7 +478,6 @@ class FKDStableDiffusion(
 
             return torch.tensor(rewards).to(x.device)
 
-        print('Args:', fkd_args)
         if fkd_args is not None and fkd_args['use_smc']:
             fkd = FKD(
                 latent_to_decode_fn=lambda x: latent_to_decode(

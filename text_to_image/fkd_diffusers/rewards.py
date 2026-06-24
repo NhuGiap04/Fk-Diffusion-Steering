@@ -35,8 +35,6 @@ REWARDS_DICT = {
 
 # Returns the reward function based on the guidance_reward_fn name
 def get_reward_function(reward_name, images, prompts, metric_to_chase="overall_score"):
-    if reward_name != "LLMGrader":
-        print("`metric_to_chase` will be ignored as it only applies to 'LLMGrader' as the `reward_name`")
     if reward_name == "ImageReward":
         return do_image_reward(images=images, prompts=prompts)
     

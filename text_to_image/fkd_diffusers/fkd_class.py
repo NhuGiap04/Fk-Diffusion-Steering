@@ -7,6 +7,7 @@ from enum import Enum
 import numpy as np
 from typing import Callable, Optional, Tuple
 import logging
+from tqdm.auto import tqdm
 
 
 class PotentialType(Enum):
@@ -139,7 +140,7 @@ class FKD:
             ess = 1.0 / (normalized_w.pow(2).sum())
 
             if ess < 0.5 * self.num_particles:
-                print(f"Resampling at timestep {sampling_idx} with ESS: {ess}")
+                tqdm.write(f"Resampling at timestep {sampling_idx} with ESS: {ess}")
                 # Resample indices based on weights
                 indices = torch.multinomial(
                     w, num_samples=self.num_particles, replacement=True
