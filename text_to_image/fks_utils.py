@@ -8,12 +8,16 @@ from fkd_pipeline_sdxl import FKDStableDiffusionXL
 from fkd_pipeline_sd import FKDStableDiffusion
 
 from fkd_diffusers.rewards import (
+    do_aesthetic_score,
     do_clip_score,
     do_clip_score_diversity,
+    do_pick_score,
     do_image_reward,
     do_human_preference_score,
     do_llm_grading
 )
+
+HPS_REWARD_NAMES = {"HPS", "HPSv2", "HumanPreference"}
 
 
 def get_model(model_name):
@@ -77,11 +81,33 @@ def do_eval(*, prompt, images, metrics_to_compute):
             results[metric]["std"] = results_arr.std().item()
             results[metric]["max"] = results_arr.max().item()
             results[metric]["min"] = results_arr.min().item()
-        elif metric == "HumanPreference":
+        elif metric in HPS_REWARD_NAMES:
             results[metric] = {}
             results[metric]["result"] = do_human_preference_score(
                 images=images, prompts=prompt
             )
+
+            results_arr = torch.tensor(results[metric]["result"])
+
+            results[metric]["mean"] = results_arr.mean().item()
+            results[metric]["std"] = results_arr.std().item()
+            results[metric]["max"] = results_arr.max().item()
+            results[metric]["min"] = results_arr.min().item()
+
+        elif metric == "PickScore":
+            results[metric] = {}
+            results[metric]["result"] = do_pick_score(images=images, prompts=prompt)
+
+            results_arr = torch.tensor(results[metric]["result"])
+
+            results[metric]["mean"] = results_arr.mean().item()
+            results[metric]["std"] = results_arr.std().item()
+            results[metric]["max"] = results_arr.max().item()
+            results[metric]["min"] = results_arr.min().item()
+
+        elif metric == "Aesthetic":
+            results[metric] = {}
+            results[metric]["result"] = do_aesthetic_score(images=images)
 
             results_arr = torch.tensor(results[metric]["result"])
 

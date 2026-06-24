@@ -124,7 +124,13 @@ def main(args):
     with open(arg_path, "w") as f:
         json.dump(vars(args), f, indent=4)
 
-    metrics_to_compute = args.metrics_to_compute.split("#")
+    metrics_to_compute = [
+        metric.strip()
+        for metric in args.metrics_to_compute.split("#")
+        if metric.strip()
+    ]
+    if args.guidance_reward_fn not in metrics_to_compute:
+        metrics_to_compute.append(args.guidance_reward_fn)
 
     # cache metric fns
     do_eval(
@@ -258,7 +264,7 @@ def get_args():
     parser.add_argument(
         "--metrics_to_compute",
         type=str,
-        default="ImageReward#HumanPreference",
+        default="ImageReward#HPS#PickScore#Aesthetic",
         help="# separated list of metrics",
     )
     parser.add_argument("--prompt_path", type=str, default="geneval_metadata.jsonl")

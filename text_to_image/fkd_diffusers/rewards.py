@@ -3,15 +3,27 @@ import torch.nn as nn
 import torch.nn.functional as F
 import clip
 import hpsv2
+from transformers import AutoModel, AutoProcessor
 
 from image_reward_utils import rm_load
 from llm_grading import LLMGrader
+
+HPS_REWARD_NAMES = {"HPS", "HPSv2", "HumanPreference"}
+PICKSCORE_PROCESSOR_NAME = "laion/CLIP-ViT-H-14-laion2B-s32B-b79K"
+PICKSCORE_MODEL_NAME = "yuvalkirstain/PickScore_v1"
+AESTHETIC_MODEL_URL = (
+    "https://github.com/christophschuhmann/improved-aesthetic-predictor/raw/main/"
+    "sac+logos+ava1-l14-linearMSE.pth"
+)
 
 # Stores the reward models
 REWARDS_DICT = {
     "Clip-Score": None,
     "ImageReward": None,
     "LLMGrader": None,
+    "PickScore": None,
+    "PickScoreProcessor": None,
+    "Aesthetic": None,
 }
 
 
@@ -25,8 +37,14 @@ def get_reward_function(reward_name, images, prompts, metric_to_chase="overall_s
     elif reward_name == "Clip-Score":
         return do_clip_score(images=images, prompts=prompts)
     
-    elif reward_name == "HumanPreference":
+    elif reward_name in HPS_REWARD_NAMES:
         return do_human_preference_score(images=images, prompts=prompts)
+
+    elif reward_name == "PickScore":
+        return do_pick_score(images=images, prompts=prompts)
+
+    elif reward_name == "Aesthetic":
+        return do_aesthetic_score(images=images)
 
     elif reward_name == "LLMGrader":
         return do_llm_grading(images=images, prompts=prompts, metric_to_chase=metric_to_chase)
@@ -49,6 +67,102 @@ def do_human_preference_score(*, images, prompts, use_paths=False):
 
     # print(f"Human preference scores: {scores}")
     return scores
+
+
+# Compute PickScore
+def do_pick_score(*, images, prompts):
+    global REWARDS_DICT
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if REWARDS_DICT["PickScoreProcessor"] is None:
+        REWARDS_DICT["PickScoreProcessor"] = AutoProcessor.from_pretrained(
+            PICKSCORE_PROCESSOR_NAME
+        )
+    if REWARDS_DICT["PickScore"] is None:
+        REWARDS_DICT["PickScore"] = AutoModel.from_pretrained(
+            PICKSCORE_MODEL_NAME
+        ).eval().to(device)
+
+    processor = REWARDS_DICT["PickScoreProcessor"]
+    model = REWARDS_DICT["PickScore"]
+
+    with torch.no_grad():
+        image_inputs = processor(
+            images=images,
+            padding=True,
+            truncation=True,
+            max_length=77,
+            return_tensors="pt",
+        ).to(device)
+        text_inputs = processor(
+            text=prompts,
+            padding=True,
+            truncation=True,
+            max_length=77,
+            return_tensors="pt",
+        ).to(device)
+
+        image_features = model.get_image_features(**image_inputs)
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+        text_features = model.get_text_features(**text_inputs)
+        text_features = text_features / text_features.norm(dim=-1, keepdim=True)
+
+        scores = model.logit_scale.exp() * (text_features * image_features).sum(dim=-1)
+
+    return scores.detach().cpu().tolist()
+
+
+class AestheticMLP(nn.Module):
+    def __init__(self, input_size=768):
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(input_size, 1024),
+            nn.Dropout(0.2),
+            nn.Linear(1024, 128),
+            nn.Dropout(0.2),
+            nn.Linear(128, 64),
+            nn.Dropout(0.1),
+            nn.Linear(64, 16),
+            nn.Linear(16, 1),
+        )
+
+    def forward(self, x):
+        return self.layers(x)
+
+
+# Compute LAION aesthetic score
+def do_aesthetic_score(*, images):
+    global REWARDS_DICT
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    if REWARDS_DICT["Clip-Score"] is None:
+        REWARDS_DICT["Clip-Score"] = CLIPScore(download_root=".", device=device)
+    if REWARDS_DICT["Aesthetic"] is None:
+        model = AestheticMLP()
+        state_dict = torch.hub.load_state_dict_from_url(
+            AESTHETIC_MODEL_URL,
+            map_location=device,
+            file_name="sac+logos+ava1-l14-linearMSE.pth",
+        )
+        model.load_state_dict(state_dict)
+        REWARDS_DICT["Aesthetic"] = model.eval().to(device)
+
+    clip_score = REWARDS_DICT["Clip-Score"]
+    aesthetic_model = REWARDS_DICT["Aesthetic"]
+
+    with torch.no_grad():
+        image_batch = torch.cat(
+            [
+                clip_score.preprocess(image).unsqueeze(0).to(device)
+                for image in images
+            ],
+            dim=0,
+        )
+        image_features = clip_score.clip_model.encode_image(image_batch).float()
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+        scores = aesthetic_model(image_features).squeeze(-1)
+
+    return scores.detach().cpu().tolist()
 
 # Compute CLIP-Score and diversity
 def do_clip_score_diversity(*, images, prompts):
