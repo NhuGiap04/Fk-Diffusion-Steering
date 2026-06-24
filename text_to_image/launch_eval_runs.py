@@ -4,6 +4,7 @@ import os
 os.environ.setdefault("USE_TF", "0")
 os.environ.setdefault("USE_FLAX", "0")
 
+import csv
 import json
 import numpy as np
 from PIL import Image
@@ -157,6 +158,7 @@ def main(args):
     }
     n_samples = 0
     average_time = 0
+    csv_rows = []
 
     prompt_progress = tqdm(
         enumerate(prompt_data),
@@ -231,6 +233,15 @@ def main(args):
             metrics_arr[metric]["min"] += results[metric]["min"]
             metrics_arr[metric]["std"] += results[metric]["std"]
 
+        csv_row = {
+            "prompt_index": prompt_idx,
+            "prompt": item["prompt"],
+            "time_taken": time_taken.total_seconds(),
+        }
+        for metric in metrics_to_compute:
+            csv_row[f"{metric}_max"] = results[metric]["max"]
+        csv_rows.append(csv_row)
+
         prompt_progress.set_postfix(
             avg_s=f"{avg_time:.2f}",
             reward=f"{results[args.guidance_reward_fn]['max']:.4f}",
@@ -269,6 +280,23 @@ def main(args):
 
     with open(os.path.join(output_dir, "final_metrics.json"), "w") as f:
         json.dump(metrics_arr, f)
+
+    csv_path = os.path.join(output_dir, "prompt_reward_maxima.csv")
+    csv_fieldnames = ["prompt_index", "prompt", "time_taken"] + [
+        f"{metric}_max" for metric in metrics_to_compute
+    ]
+    with open(csv_path, "w", newline="") as f:
+        writer = csv.DictWriter(f, fieldnames=csv_fieldnames)
+        writer.writeheader()
+        writer.writerows(csv_rows)
+        average_row = {
+            "prompt_index": "AVERAGE",
+            "prompt": "",
+            "time_taken": average_time / n_samples,
+        }
+        for metric in metrics_to_compute:
+            average_row[f"{metric}_max"] = metrics_arr[metric]["max"]
+        writer.writerow(average_row)
 
 
 def get_args():
