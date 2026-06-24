@@ -1,5 +1,9 @@
 # primary generation script
 import os
+
+os.environ.setdefault("USE_TF", "0")
+os.environ.setdefault("USE_FLAX", "0")
+
 import json
 import numpy as np
 from PIL import Image
