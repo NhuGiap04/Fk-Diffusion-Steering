@@ -1,9 +1,11 @@
 from typing import Union
 import os
+import sys
+import types
 import torch
 
 from PIL import Image
-import ImageReward as RM
+from huggingface_hub import hf_hub_download
 
 
 '''
@@ -21,10 +23,28 @@ import os
 import torch
 import torch.nn as nn
 from PIL import Image
+
+if "wandb" not in sys.modules:
+    wandb_stub = types.ModuleType("wandb")
+    wandb_stub.init = lambda *args, **kwargs: None
+    wandb_stub.log = lambda *args, **kwargs: None
+    wandb_stub.finish = lambda *args, **kwargs: None
+    sys.modules["wandb"] = wandb_stub
+
 from ImageReward.models.BLIP.blip_pretrain import BLIP_Pretrain
 from torchvision.transforms import Compose, Resize, CenterCrop, ToTensor, Normalize
 
 from torchvision.transforms.functional import pil_to_tensor
+
+IMAGE_REWARD_MODELS = {
+    "ImageReward-v1.0": "ImageReward.pt",
+}
+
+
+def image_reward_download(filename: str, root: str):
+    os.makedirs(root, exist_ok=True)
+    hf_hub_download(repo_id="THUDM/ImageReward", filename=filename, local_dir=root)
+    return os.path.join(root, filename)
 
 try:
     from torchvision.transforms import InterpolationMode
@@ -282,10 +302,11 @@ def rm_load(
     model : torch.nn.Module
         The ImageReward model
     """
-    if name in RM.utils._MODELS:
-        model_path = RM.ImageReward_download(
-            RM.utils._MODELS[name],
-            download_root or os.path.expanduser("~/.cache/ImageReward"),
+    model_download_root = download_root or os.path.expanduser("~/.cache/ImageReward")
+    if name in IMAGE_REWARD_MODELS:
+        model_path = image_reward_download(
+            IMAGE_REWARD_MODELS[name],
+            model_download_root,
         )
     elif os.path.isfile(name):
         model_path = name
@@ -298,9 +319,9 @@ def rm_load(
 
     # med_config
     if med_config is None:
-        med_config = RM.ImageReward_download(
-            "https://huggingface.co/THUDM/ImageReward/blob/main/med_config.json",
-            download_root or os.path.expanduser("~/.cache/ImageReward"),
+        med_config = image_reward_download(
+            "med_config.json",
+            model_download_root,
         )
 
     model = IRSMC(device=device, med_config=med_config).to(device)
