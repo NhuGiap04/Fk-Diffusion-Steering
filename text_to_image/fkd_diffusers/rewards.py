@@ -8,14 +8,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 import clip
 import hpsv2
-from transformers import AutoModel, AutoProcessor
+import torchvision
+from transformers import AutoModel, CLIPProcessor
 
 from image_reward_utils import rm_load
 from llm_grading import LLMGrader
 
 HPS_REWARD_NAMES = {"HPS", "HPSv2", "HumanPreference"}
 CLIP_REWARD_NAMES = {"Clip-Score", "CLIP-Score"}
-PICKSCORE_PROCESSOR_NAME = "laion/CLIP-ViT-H-14-laion2B-s32B-b79K"
+PICKSCORE_PROCESSOR_NAME = "openai/clip-vit-large-patch14"
 PICKSCORE_MODEL_NAME = "yuvalkirstain/PickScore_v1"
 AESTHETIC_MODEL_URL = (
     "https://github.com/christophschuhmann/improved-aesthetic-predictor/raw/main/"
@@ -79,25 +80,18 @@ def do_pick_score(*, images, prompts):
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     if REWARDS_DICT["PickScoreProcessor"] is None:
-        REWARDS_DICT["PickScoreProcessor"] = AutoProcessor.from_pretrained(
+        REWARDS_DICT["PickScoreProcessor"] = CLIPProcessor.from_pretrained(
             PICKSCORE_PROCESSOR_NAME
         )
     if REWARDS_DICT["PickScore"] is None:
         REWARDS_DICT["PickScore"] = AutoModel.from_pretrained(
             PICKSCORE_MODEL_NAME
-        ).eval().to(device)
+        ).eval().to(device, dtype=torch.float32)
 
     processor = REWARDS_DICT["PickScoreProcessor"]
     model = REWARDS_DICT["PickScore"]
 
     with torch.no_grad():
-        image_inputs = processor(
-            images=images,
-            padding=True,
-            truncation=True,
-            max_length=77,
-            return_tensors="pt",
-        ).to(device)
         text_inputs = processor(
             text=prompts,
             padding=True,
@@ -106,12 +100,26 @@ def do_pick_score(*, images, prompts):
             return_tensors="pt",
         ).to(device)
 
-        image_features = model.get_image_features(**image_inputs)
-        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
         text_features = model.get_text_features(**text_inputs)
         text_features = text_features / text_features.norm(dim=-1, keepdim=True)
 
-        scores = model.logit_scale.exp() * (text_features * image_features).sum(dim=-1)
+        image_tensors = torch.stack(
+            [
+                torchvision.transforms.functional.to_tensor(image.convert("RGB"))
+                for image in images
+            ],
+            dim=0,
+        ).to(device, dtype=torch.float32)
+        image_tensors = torchvision.transforms.Resize(224)(image_tensors)
+        image_tensors = torchvision.transforms.Normalize(
+            mean=[0.48145466, 0.4578275, 0.40821073],
+            std=[0.26862954, 0.26130258, 0.27577711],
+        )(image_tensors)
+
+        image_features = model.get_image_features(pixel_values=image_tensors)
+        image_features = image_features / image_features.norm(dim=-1, keepdim=True)
+
+        scores = torch.diagonal(image_features @ text_features.T)
 
     return scores.detach().cpu().tolist()
 
