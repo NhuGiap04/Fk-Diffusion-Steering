@@ -9,6 +9,7 @@ from image_reward_utils import rm_load
 from llm_grading import LLMGrader
 
 HPS_REWARD_NAMES = {"HPS", "HPSv2", "HumanPreference"}
+CLIP_REWARD_NAMES = {"Clip-Score", "CLIP-Score"}
 PICKSCORE_PROCESSOR_NAME = "laion/CLIP-ViT-H-14-laion2B-s32B-b79K"
 PICKSCORE_MODEL_NAME = "yuvalkirstain/PickScore_v1"
 AESTHETIC_MODEL_URL = (
@@ -34,7 +35,7 @@ def get_reward_function(reward_name, images, prompts, metric_to_chase="overall_s
     if reward_name == "ImageReward":
         return do_image_reward(images=images, prompts=prompts)
     
-    elif reward_name == "Clip-Score":
+    elif reward_name in CLIP_REWARD_NAMES:
         return do_clip_score(images=images, prompts=prompts)
     
     elif reward_name in HPS_REWARD_NAMES:

@@ -18,6 +18,7 @@ from fkd_diffusers.rewards import (
 )
 
 HPS_REWARD_NAMES = {"HPS", "HPSv2", "HumanPreference"}
+CLIP_REWARD_NAMES = {"Clip-Score", "CLIP-Score"}
 
 
 def get_model(model_name):
@@ -47,7 +48,7 @@ def do_eval(*, prompt, images, metrics_to_compute):
     """
     results = {}
     for metric in metrics_to_compute:
-        if metric == "Clip-Score":
+        if metric in CLIP_REWARD_NAMES:
             results[metric] = {}
             (
                 results[metric]["result"],

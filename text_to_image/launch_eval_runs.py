@@ -27,11 +27,19 @@ def load_geneval_metadata(prompt_path, max_prompts=None):
     if prompt_path.endswith(".json"):
         with open(prompt_path, "r") as f:
             data = json.load(f)
+    elif prompt_path.endswith(".txt"):
+        with open(prompt_path, "r") as f:
+            data = [
+                {"prompt": line.strip()}
+                for line in f
+                if line.strip()
+            ]
     else:
         assert prompt_path.endswith(".jsonl")
         with open(prompt_path, "r") as f:
             data = [json.loads(line) for line in f]
     assert isinstance(data, list)
+    assert len(data) > 0, f"No prompts found in {prompt_path}"
     prompt_key = "prompt"
     if prompt_key not in data[0]:
         assert "text" in data[0], "Prompt data should have 'prompt' or 'text' key"
@@ -145,7 +153,13 @@ def main(args):
     n_samples = 0
     average_time = 0
 
-    for prompt_idx, item in enumerate(tqdm(prompt_data)):
+    prompt_progress = tqdm(
+        enumerate(prompt_data),
+        total=len(prompt_data),
+        desc=f"seed {args.seed}",
+        unit="prompt",
+    )
+    for prompt_idx, item in prompt_progress:
         prompt = [item["prompt"]] * args.num_particles
         start_time = datetime.now()
 
@@ -193,7 +207,7 @@ def main(args):
         n_samples += 1
 
         average_time += time_taken.total_seconds()
-        print(f"Time taken: {average_time / n_samples}")
+        avg_time = average_time / n_samples
 
         # sort images by reward
         guidance_reward = np.array(results[args.guidance_reward_fn]["result"])
@@ -210,12 +224,10 @@ def main(args):
             metrics_arr[metric]["min"] += results[metric]["min"]
             metrics_arr[metric]["std"] += results[metric]["std"]
 
-        for metric in metrics_to_compute:
-            print(
-                metric,
-                metrics_arr[metric]["mean"] / n_samples,
-                metrics_arr[metric]["max"] / n_samples,
-            )
+        prompt_progress.set_postfix(
+            avg_s=f"{avg_time:.2f}",
+            reward=f"{results[args.guidance_reward_fn]['max']:.4f}",
+        )
 
         if args.save_individual_images:
             sample_path = os.path.join(prompt_path, "samples")
@@ -268,7 +280,7 @@ def get_args():
         help="# separated list of metrics",
     )
     parser.add_argument("--prompt_path", type=str, default="geneval_metadata.jsonl")
-    parser.add_argument("--model_idx", type=int, default=0, help="Used for selecting model and configuration")
+    parser.add_argument("--model_idx", type=int, default=None, help="Used for selecting model and configuration")
 
     parser.add_argument(
         "--model_name", type=str, default="stabilityai/stable-diffusion-2-1"
@@ -287,57 +299,59 @@ def get_args():
     if args.prompt_path == "geneval_metadata.jsonl":
         args.save_individual_images = True
 
-    if args.model_idx % 4 == 0:
-        args.num_particles = 2
+    if args.model_idx is not None:
+        if args.model_idx % 4 == 0:
+            args.num_particles = 2
 
-    elif args.model_idx % 4 == 1:
-        args.num_particles = 3
+        elif args.model_idx % 4 == 1:
+            args.num_particles = 3
 
-    elif args.model_idx % 4 == 2:
-        args.num_particles = 4
+        elif args.model_idx % 4 == 2:
+            args.num_particles = 4
 
-    elif args.model_idx % 4 == 3:
-        args.num_particles = 8
-    else:
-        raise ValueError("Unknown model index")
+        elif args.model_idx % 4 == 3:
+            args.num_particles = 8
+        else:
+            raise ValueError("Unknown model index")
 
-    if args.model_idx in [0, 1, 2, 3]: 
-        args.model_name = "stabilityai/stable-diffusion-2-1"
-        # assert False
+        if args.model_idx in [0, 1, 2, 3]:
+            args.model_name = "stabilityai/stable-diffusion-2-1"
+            # assert False
 
-    elif args.model_idx in [4, 5, 6, 7]:
-        args.model_name = "runwayml/stable-diffusion-v1-5"
+        elif args.model_idx in [4, 5, 6, 7]:
+            args.model_name = "runwayml/stable-diffusion-v1-5"
 
-    elif args.model_idx in [8, 9, 10, 11]:
-        args.model_name = "stabilityai/stable-diffusion-xl-base-1.0"
-        # assert False
+        elif args.model_idx in [8, 9, 10, 11]:
+            args.model_name = "stabilityai/stable-diffusion-xl-base-1.0"
+            # assert False
 
-    elif args.model_idx in [12, 13, 14, 15]:
-        args.model_name = "CompVis/stable-diffusion-v1-4"
-        # assert False
+        elif args.model_idx in [12, 13, 14, 15]:
+            args.model_name = "CompVis/stable-diffusion-v1-4"
+            # assert False
 
-    elif args.model_idx in [99]:
-        args.model_name = "kvablack/ddpo-alignment"
-        args.num_particles = 4
+        elif args.model_idx in [99]:
+            args.model_name = "kvablack/ddpo-alignment"
+            args.num_particles = 4
 
-    elif args.model_idx == 100:
-        args.model_name = "mhdang/dpo-sd1.5-text2image-v1"
-        args.num_particles = 4
+        elif args.model_idx == 100:
+            args.model_name = "mhdang/dpo-sd1.5-text2image-v1"
+            args.num_particles = 4
 
-    elif args.model_idx == 101:
-        args.model_name = "mhdang/dpo-sdxl-text2image-v1"
-        args.num_particles = 4
+        elif args.model_idx == 101:
+            args.model_name = "mhdang/dpo-sdxl-text2image-v1"
+            args.num_particles = 4
 
-    else:
-        raise ValueError(f"Unknown model index {args.model_idx}")
+        else:
+            raise ValueError(f"Unknown model index {args.model_idx}")
 
-    args.output_dir = args.prompt_path.replace(".json", f"_outputs")
+    prompt_root, _ = os.path.splitext(args.prompt_path)
+    args.output_dir = f"{prompt_root}_outputs"
 
     return args
 
 
 if __name__ == "__main__":
     args = get_args()
-    for seed in [42, 43, 44]:
+    for seed in tqdm([42, 43, 44], desc="seeds", unit="seed"):
         args.seed = seed
         main(args)
