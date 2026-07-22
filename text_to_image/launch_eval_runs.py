@@ -71,6 +71,11 @@ def main(args):
         assert args.resample_frequency > 0
         assert args.num_particles > 1
 
+    if args.batch_p is None:
+        args.batch_p = args.num_particles
+    if not 1 <= args.batch_p <= args.num_particles:
+        raise ValueError("--batch-p must be between 1 and --num_particles")
+
     # load prompt data
     prompt_data = load_geneval_metadata(args.prompt_path)
 
@@ -190,6 +195,7 @@ def main(args):
             resampling_t_end=args.resample_t_end,
             guidance_reward_fn=args.guidance_reward_fn,
             potential_type=args.potential_type,
+            batch_p=args.batch_p,
         )
 
         images = pipe(
@@ -304,6 +310,16 @@ def get_args():
     parser.add_argument("--output_dir", type=str, default="geneval_outputs")
     parser.add_argument("--save_individual_images", type=bool, default=True)
     parser.add_argument("--num_particles", type=int, default=4)
+    parser.add_argument(
+        "--batch_p",
+        dest="batch_p",
+        type=int,
+        default=None,
+        help=(
+            "Number of particles processed by the diffusion model at once. "
+            "Defaults to num_particles."
+        ),
+    )
     parser.add_argument("--num_inference_steps", type=int, default=100)
     parser.add_argument("--use_smc", action="store_true")
     parser.add_argument("--eta", type=float, default=1.0)

@@ -79,6 +79,28 @@ else:
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 
+def _slice_batch_value(value, indices, start, end, model_batch, particle_batch):
+    """Slice conditioning values whose leading dimension follows the model batch."""
+    if torch.is_tensor(value) and value.ndim:
+        if value.shape[0] == model_batch:
+            return value.index_select(0, indices.to(value.device))
+        if value.shape[0] == particle_batch:
+            return value[start:end]
+    if isinstance(value, dict):
+        return {
+            key: _slice_batch_value(
+                item, indices, start, end, model_batch, particle_batch
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return type(value)(
+            _slice_batch_value(item, indices, start, end, model_batch, particle_batch)
+            for item in value
+        )
+    return value
+
+
 # Copied from diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion.rescale_noise_cfg
 def rescale_noise_cfg(noise_cfg, noise_pred_text, guidance_rescale=0.0):
     """
@@ -695,9 +717,10 @@ class FKDStableDiffusionXL(
             return torch.tensor(rewards).to(x.device)
 
         if fkd_args is not None and fkd_args['use_smc']:
+            batch_p = fkd_args.get("batch_p", batch_size * num_images_per_prompt)
             fkd = FKD(
                 latent_to_decode_fn=lambda x: latent_to_decode(
-                    model=self, output_type=output_type, latents=x
+                    model=self, output_type=output_type, latents=x, batch_p=batch_p
                 ),
                 reward_fn=postprocess_and_apply_reward_fn,
                 **fkd_args,
@@ -727,30 +750,65 @@ class FKDStableDiffusionXL(
                 if ip_adapter_image is not None or ip_adapter_image_embeds is not None:
                     added_cond_kwargs["image_embeds"] = image_embeds
 
-                noise_pred = self.unet(
-                    latent_model_input,
-                    t,
-                    encoder_hidden_states=prompt_embeds,
-                    timestep_cond=timestep_cond,
-                    cross_attention_kwargs=self.cross_attention_kwargs,
-                    added_cond_kwargs=added_cond_kwargs,
-                    return_dict=False,
-                )[0]
+                particle_batch = latents.shape[0]
+                batch_p = min(
+                    fkd_args.get("batch_p", particle_batch)
+                    if fkd_args is not None
+                    else particle_batch,
+                    particle_batch,
+                )
+                model_batch = latent_model_input.shape[0]
+                noise_chunks = []
+                for start in range(0, particle_batch, batch_p):
+                    end = min(start + batch_p, particle_batch)
+                    if self.do_classifier_free_guidance:
+                        indices = torch.cat(
+                            [
+                                torch.arange(start, end, device=latents.device),
+                                torch.arange(
+                                    particle_batch + start,
+                                    particle_batch + end,
+                                    device=latents.device,
+                                ),
+                            ]
+                        )
+                    else:
+                        indices = torch.arange(start, end, device=latents.device)
 
-                # perform guidance
-                if self.do_classifier_free_guidance:
-                    noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
-                    noise_pred = noise_pred_uncond + self.guidance_scale * (
-                        noise_pred_text - noise_pred_uncond
-                    )
+                    noise_chunk = self.unet(
+                        latent_model_input.index_select(0, indices),
+                        t,
+                        encoder_hidden_states=_slice_batch_value(
+                            prompt_embeds, indices, start, end, model_batch, particle_batch
+                        ),
+                        timestep_cond=_slice_batch_value(
+                            timestep_cond, indices, start, end, model_batch, particle_batch
+                        ),
+                        cross_attention_kwargs=self.cross_attention_kwargs,
+                        added_cond_kwargs=_slice_batch_value(
+                            added_cond_kwargs,
+                            indices,
+                            start,
+                            end,
+                            model_batch,
+                            particle_batch,
+                        ),
+                        return_dict=False,
+                    )[0]
 
-                if self.do_classifier_free_guidance and self.guidance_rescale > 0.0:
-                    # Based on 3.4. in https://arxiv.org/pdf/2305.08891.pdf
-                    noise_pred = rescale_noise_cfg(
-                        noise_pred,
-                        noise_pred_text,
-                        guidance_rescale=self.guidance_rescale,
-                    )
+                    if self.do_classifier_free_guidance:
+                        noise_uncond, noise_text = noise_chunk.chunk(2)
+                        noise_chunk = noise_uncond + self.guidance_scale * (
+                            noise_text - noise_uncond
+                        )
+                        if self.guidance_rescale > 0.0:
+                            noise_chunk = rescale_noise_cfg(
+                                noise_chunk,
+                                noise_text,
+                                guidance_rescale=self.guidance_rescale,
+                            )
+                    noise_chunks.append(noise_chunk)
+                noise_pred = torch.cat(noise_chunks)
 
                 # compute the previous noisy sample x_t -> x_t-1
                 latents_dtype = latents.dtype
@@ -861,7 +919,19 @@ class FKDStableDiffusionXL(
             else:
                 latents = latents / self.vae.config.scaling_factor
 
-            image = self.vae.decode(latents, return_dict=False)[0]
+            decode_batch_p = (
+                fkd_args.get("batch_p", latents.shape[0])
+                if fkd_args is not None
+                else latents.shape[0]
+            )
+            image = torch.cat(
+                [
+                    self.vae.decode(
+                        latents[start : start + decode_batch_p], return_dict=False
+                    )[0]
+                    for start in range(0, latents.shape[0], decode_batch_p)
+                ]
+            )
 
             # cast back to fp16 if needed
             if needs_upcasting:
@@ -887,7 +957,7 @@ class FKDStableDiffusionXL(
 
                 
 # FK Steering Change
-def latent_to_decode(*, model, output_type, latents):
+def latent_to_decode(*, model, output_type, latents, batch_p=None):
     if not output_type == "latent":
         # make sure the VAE is in float32 mode, as it overflows in float16
         needs_upcasting = (
@@ -931,7 +1001,13 @@ def latent_to_decode(*, model, output_type, latents):
         else:
             latents = latents / model.vae.config.scaling_factor
 
-        image = model.vae.decode(latents, return_dict=False)[0]
+        batch_p = batch_p or latents.shape[0]
+        image = torch.cat(
+            [
+                model.vae.decode(latents[start : start + batch_p], return_dict=False)[0]
+                for start in range(0, latents.shape[0], batch_p)
+            ]
+        )
 
         # cast back to fp16 if needed
         if needs_upcasting:

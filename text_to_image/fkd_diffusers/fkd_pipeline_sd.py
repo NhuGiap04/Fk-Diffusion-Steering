@@ -58,6 +58,28 @@ from diffusers.pipelines.stable_diffusion import (
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
 
+def _slice_batch_value(value, indices, start, end, model_batch, particle_batch):
+    """Slice conditioning values whose leading dimension follows the model batch."""
+    if torch.is_tensor(value) and value.ndim:
+        if value.shape[0] == model_batch:
+            return value.index_select(0, indices.to(value.device))
+        if value.shape[0] == particle_batch:
+            return value[start:end]
+    if isinstance(value, dict):
+        return {
+            key: _slice_batch_value(
+                item, indices, start, end, model_batch, particle_batch
+            )
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return type(value)(
+            _slice_batch_value(item, indices, start, end, model_batch, particle_batch)
+            for item in value
+        )
+    return value
+
+
 def rescale_noise_cfg(noise_cfg, noise_pred_text, guidance_rescale=0.0):
     """
     Rescale `noise_cfg` according to `guidance_rescale`. Based on findings of [Common Diffusion Noise Schedules and
@@ -479,9 +501,10 @@ class FKDStableDiffusion(
             return torch.tensor(rewards).to(x.device)
 
         if fkd_args is not None and fkd_args['use_smc']:
+            batch_p = fkd_args.get("batch_p", batch_size * num_images_per_prompt)
             fkd = FKD(
                 latent_to_decode_fn=lambda x: latent_to_decode(
-                    model=self, output_type=output_type, latents=x
+                    model=self, output_type=output_type, latents=x, batch_p=batch_p
                 ),
                 reward_fn=postprocess_and_apply_reward_fn,
                 **fkd_args,
@@ -505,31 +528,66 @@ class FKDStableDiffusion(
                     latent_model_input, t
                 )
 
-                # predict the noise residual
-                noise_pred = self.unet(
-                    latent_model_input,
-                    t,
-                    encoder_hidden_states=prompt_embeds,
-                    timestep_cond=timestep_cond,
-                    cross_attention_kwargs=self.cross_attention_kwargs,
-                    added_cond_kwargs=added_cond_kwargs,
-                    return_dict=False,
-                )[0]
+                # Predict particles in smaller batches to reduce peak accelerator memory.
+                particle_batch = latents.shape[0]
+                batch_p = min(
+                    fkd_args.get("batch_p", particle_batch)
+                    if fkd_args is not None
+                    else particle_batch,
+                    particle_batch,
+                )
+                model_batch = latent_model_input.shape[0]
+                noise_chunks = []
+                for start in range(0, particle_batch, batch_p):
+                    end = min(start + batch_p, particle_batch)
+                    if self.do_classifier_free_guidance:
+                        indices = torch.cat(
+                            [
+                                torch.arange(start, end, device=latents.device),
+                                torch.arange(
+                                    particle_batch + start,
+                                    particle_batch + end,
+                                    device=latents.device,
+                                ),
+                            ]
+                        )
+                    else:
+                        indices = torch.arange(start, end, device=latents.device)
 
-                # perform guidance
-                if self.do_classifier_free_guidance:
-                    noise_pred_uncond, noise_pred_text = noise_pred.chunk(2)
-                    noise_pred = noise_pred_uncond + self.guidance_scale * (
-                        noise_pred_text - noise_pred_uncond
-                    )
+                    noise_chunk = self.unet(
+                        latent_model_input.index_select(0, indices),
+                        t,
+                        encoder_hidden_states=_slice_batch_value(
+                            prompt_embeds, indices, start, end, model_batch, particle_batch
+                        ),
+                        timestep_cond=_slice_batch_value(
+                            timestep_cond, indices, start, end, model_batch, particle_batch
+                        ),
+                        cross_attention_kwargs=self.cross_attention_kwargs,
+                        added_cond_kwargs=_slice_batch_value(
+                            added_cond_kwargs,
+                            indices,
+                            start,
+                            end,
+                            model_batch,
+                            particle_batch,
+                        ),
+                        return_dict=False,
+                    )[0]
 
-                if self.do_classifier_free_guidance and self.guidance_rescale > 0.0:
-                    # Based on 3.4. in https://arxiv.org/pdf/2305.08891.pdf
-                    noise_pred = rescale_noise_cfg(
-                        noise_pred,
-                        noise_pred_text,
-                        guidance_rescale=self.guidance_rescale,
-                    )
+                    if self.do_classifier_free_guidance:
+                        noise_uncond, noise_text = noise_chunk.chunk(2)
+                        noise_chunk = noise_uncond + self.guidance_scale * (
+                            noise_text - noise_uncond
+                        )
+                        if self.guidance_rescale > 0.0:
+                            noise_chunk = rescale_noise_cfg(
+                                noise_chunk,
+                                noise_text,
+                                guidance_rescale=self.guidance_rescale,
+                            )
+                    noise_chunks.append(noise_chunk)
+                noise_pred = torch.cat(noise_chunks)
 
                 # compute the previous noisy sample x_t -> x_t-1
 
@@ -571,11 +629,27 @@ class FKDStableDiffusion(
                         callback(step_idx, t, latents)
 
         if not output_type == "latent":
-            image = self.vae.decode(
-                latents / self.vae.config.scaling_factor,
-                return_dict=False,
-                generator=generator,
-            )[0]
+            decode_batch_p = (
+                fkd_args.get("batch_p", latents.shape[0])
+                if fkd_args is not None
+                else latents.shape[0]
+            )
+            decoded_chunks = []
+            for start in range(0, latents.shape[0], decode_batch_p):
+                chunk_generator = (
+                    generator[start : start + decode_batch_p]
+                    if isinstance(generator, list)
+                    else generator
+                )
+                decoded_chunks.append(
+                    self.vae.decode(
+                        latents[start : start + decode_batch_p]
+                        / self.vae.config.scaling_factor,
+                        return_dict=False,
+                        generator=chunk_generator,
+                    )[0]
+                )
+            image = torch.cat(decoded_chunks)
             # image, has_nsfw_concept = self.run_safety_checker(image, device, prompt_embeds.dtype)
             has_nsfw_concept = None
         else:
@@ -603,7 +677,7 @@ class FKDStableDiffusion(
 
 
 # FK Steering Change
-def latent_to_decode(*, model, output_type, latents):
+def latent_to_decode(*, model, output_type, latents, batch_p=None):
     if not output_type == "latent":
         # # make sure the VAE is in float32 mode, as it overflows in float16
         # needs_upcasting = model.vae.dtype == torch.float16 and model.vae.config.force_upcast
@@ -643,7 +717,13 @@ def latent_to_decode(*, model, output_type, latents):
         else:
             latents = latents / model.vae.config.scaling_factor
 
-        image = model.vae.decode(latents, return_dict=False)[0]
+        batch_p = batch_p or latents.shape[0]
+        image = torch.cat(
+            [
+                model.vae.decode(latents[start : start + batch_p], return_dict=False)[0]
+                for start in range(0, latents.shape[0], batch_p)
+            ]
+        )
     else:
         image = latents
 
